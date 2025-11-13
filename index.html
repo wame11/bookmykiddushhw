@@ -77,9 +77,9 @@
 </section>
 
 <script>
-// === ONLY 1 RELIABLE PROXY (NO ACTIVATION NEEDED) ===
+// === RELIABLE PROXY + YOUR NEW APPS SCRIPT ===
 const PROXY_URL = "https://api.allorigins.win/raw?url=";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyN9IRAmCbPsfdCafVP1k1OM0fvyK_TpHyIgMw8dKWsixIoYfYgN-pYm351vgRh2pt3/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8c2w7z9k3m5n7p9r1t3v5x7z9/exec"; // ← WILL BE UPDATED AFTER DEPLOY
 
 const FESTIVALS = new Set([
   "2025-04-13","2025-04-14","2025-04-19","2025-04-20","2025-06-02","2025-06-03",
@@ -136,7 +136,7 @@ async function fetchBookings() {
     bookings = Array.isArray(data) ? data : [];
   } catch (err) {
     console.error("GET failed:", err);
-    alert("Failed to load bookings. Please refresh.");
+    alert("Failed to load bookings. Please refresh the page.");
   }
   loading.style.display = "none";
   renderCalendar();
@@ -292,17 +292,18 @@ function renderBookings() {
               ${b.dedication ? `<p class='text-sm text-gray-600'>${b.dedication}</p>` : ""}
             </div>
             ${canRemove
-              ? `<button class='px-3 py-1 rounded border text-xs hover:bg-gray-50' onclick='deleteBooking("${b.date}")'>Remove</button>`
+              ? `<button class='px-3 py-1 rounded border text-xs hover:bg-gray-50' onclick='deleteBooking("${b.date}", "${encodeURIComponent(b.email)}")'>Remove</button>`
               : ""}
           </div>`;
       }).join("")
     : "<div class='p-4 rounded-xl bg-gray-50 border text-sm text-gray-600'>No bookings yet.</div>";
 }
 
-async function deleteBooking(date) {
+// === DELETE BOOKING (with email) ===
+async function deleteBooking(date, email) {
   if (!confirm("Remove your booking for " + date + "?")) return;
   try {
-    await fetch(PROXY_URL + SCRIPT_URL + "?action=delete&date=" + date);
+    await fetch(PROXY_URL + SCRIPT_URL + `?action=delete&date=${date}&email=${email}`);
     fetchBookings();
   } catch (err) {
     alert("Delete failed");
@@ -312,7 +313,9 @@ async function deleteBooking(date) {
 document.getElementById("prevBtn").onclick = () => { viewDate = addMonths(viewDate, -1); renderCalendar(); };
 document.getElementById("nextBtn").onclick = () => { viewDate = addMonths(viewDate, 1); renderCalendar(); };
 
+// Auto-refresh every 30 seconds
 setInterval(fetchBookings, 30000);
+
 fetchBookings();
 </script>
 
