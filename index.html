@@ -77,8 +77,8 @@
 </section>
 
 <script>
-// === FINAL WORKING SCRIPT ===
-const PROXY_URL = "https://api.allorigins.win/raw?url=";
+// === NEW PROXY + YOUR SCRIPT ===
+const PROXY_URL = "https://corsproxy.io/?";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx4CxkTCA3e6FTa6SDcORKZr_N77HjzZT7La-9_Ow9BXbppxethOnI2IaONkaUFwXgF/exec";
 
 const FESTIVALS = new Set([
@@ -129,7 +129,7 @@ function isSelectable(d) {
 async function fetchBookings() {
   loading.style.display = "block";
   try {
-    const res = await fetch(PROXY_URL + SCRIPT_URL + "&t=" + Date.now());
+    const res = await fetch(PROXY_URL + encodeURIComponent(SCRIPT_URL) + "&t=" + Date.now());
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
     bookings = Array.isArray(data) ? data : [];
@@ -249,7 +249,7 @@ function renderForm() {
       savedMsg.classList.remove("hidden");
 
       try {
-        const res = await fetch(PROXY_URL + SCRIPT_URL, {
+        const res = await fetch(PROXY_URL + encodeURIComponent(SCRIPT_URL), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(rec)
@@ -295,7 +295,7 @@ function renderBookings() {
 async function deleteBooking(date, email) {
   if (!confirm("Remove your booking for " + date + "?")) return;
   try {
-    await fetch(PROXY_URL + SCRIPT_URL + `?action=delete&date=${date}&email=${email}`);
+    await fetch(PROXY_URL + encodeURIComponent(SCRIPT_URL) + `?action=delete&date=${date}&email=${email}`);
     fetchBookings();
   } catch (err) {
     alert("Delete failed");
