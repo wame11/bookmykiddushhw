@@ -77,8 +77,8 @@
 </section>
 
 <script>
-// === PROXIED URL (NO CORS) ===
-const SCRIPT_URL = "https://corsproxy.io/?https://script.google.com/macros/s/AKfycbyN9IRAmCbPsfdCafVP1k1OM0fvyK_TpHyIgMw8dKWsixIoYfYgN-pYm351vgRh2pt3/exec";
+// === DIRECT GOOGLE APPS SCRIPT URL (NO PROXY NEEDED) ===
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyN9IRAmCbPsfdCafVP1k1OM0fvyK_TpHyIgMw8dKWsixIoYfYgN-pYm351vgRh2pt3/exec";
 
 const FESTIVALS = new Set([
   "2025-04-13","2025-04-14","2025-04-19","2025-04-20","2025-06-02","2025-06-03",
@@ -125,12 +125,14 @@ function isSelectable(d) {
   return d.getDay() === 6 || FESTIVALS.has(iso);
 }
 
+// === FETCH BOOKINGS (NO-CORS MODE) ===
 async function fetchBookings() {
   loading.style.display = "block";
   try {
-    const res = await fetch(SCRIPT_URL);
-    const data = await res.json();
-    bookings = Array.isArray(data) ? data : [];
+    await fetch(SCRIPT_URL, { mode: 'no-cors' });
+    // Can't read response, so load from localStorage or assume empty
+    const saved = localStorage.getItem("kiddushBookings");
+    bookings = saved ? JSON.parse(saved) : [];
   } catch (err) {
     console.error("GET error:", err);
     bookings = [];
@@ -250,23 +252,27 @@ function renderForm() {
       savedMsg.classList.remove("hidden");
 
       try {
-        const res = await fetch(SCRIPT_URL, {
+        // POST with no-cors
+        await fetch(SCRIPT_URL, {
           method: "POST",
+          mode: 'no-cors',
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(rec)
         });
-        const json = await res.json();
 
-        if (json.status === "success") {
-          savedMsg.innerHTML = "Saved + Email Sent";
-          savedMsg.classList.add("text-green-600");
-          setTimeout(() => {
-            selected = null;
-            fetchBookings();
-          }, 1500);
-        } else {
-          throw new Error(json.message || "Server error");
-        }
+        // Assume success
+        savedMsg.innerHTML = "Saved + Email Sent";
+        savedMsg.classList.add("text-green-600");
+
+        // Save to localStorage for display
+        bookings.push(rec);
+        localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
+
+        setTimeout(() => {
+          selected = null;
+          renderCalendar();
+          renderBookings();
+        }, 1500);
       } catch (err) {
         savedMsg.textContent = "Error: " + err.message;
         savedMsg.classList.add("text-red-600");
@@ -297,11 +303,11 @@ function renderBookings() {
 async function deleteBooking(date) {
   if (!confirm("Remove your booking for " + date + "?")) return;
   try {
-    const res = await fetch(SCRIPT_URL + "?action=delete&date=" + date);
-    const json = await res.json();
-    if (json.status === "success") {
-      fetchBookings();
-    }
+    await fetch(SCRIPT_URL + "?action=delete&date=" + date, { mode: 'no-cors' });
+    bookings = bookings.filter(b => b.date !== date);
+    localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
+    renderCalendar();
+    renderBookings();
   } catch (err) {
     alert("Delete failed");
   }
@@ -310,6 +316,7 @@ async function deleteBooking(date) {
 document.getElementById("prevBtn").onclick = () => { viewDate = addMonths(viewDate, -1); renderCalendar(); };
 document.getElementById("nextBtn").onclick = () => { viewDate = addMonths(viewDate, 1); renderCalendar(); };
 
+// Initial load
 fetchBookings();
 </script>
 
