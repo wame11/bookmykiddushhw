@@ -77,9 +77,9 @@
 </section>
 
 <script>
-// === RELIABLE PROXY + YOUR NEW APPS SCRIPT ===
+// === FINAL: USE THIS AFTER DEPLOYING APPS SCRIPT ===
 const PROXY_URL = "https://api.allorigins.win/raw?url=";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8c2w7z9k3m5n7p9r1t3v5x7z9/exec"; // ← WILL BE UPDATED AFTER DEPLOY
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx4CxkTCA3e6FTa6SDcORKZr_N77HjzZT7La-9_Ow9BXbppxethOnI2IaONkaUFwXgF/exec"; // ← AFTER DEPLOY
 
 const FESTIVALS = new Set([
   "2025-04-13","2025-04-14","2025-04-19","2025-04-20","2025-06-02","2025-06-03",
@@ -126,7 +126,6 @@ function isSelectable(d) {
   return d.getDay() === 6 || FESTIVALS.has(iso);
 }
 
-// === FETCH BOOKINGS FROM SHEET ===
 async function fetchBookings() {
   loading.style.display = "block";
   try {
@@ -136,7 +135,7 @@ async function fetchBookings() {
     bookings = Array.isArray(data) ? data : [];
   } catch (err) {
     console.error("GET failed:", err);
-    alert("Failed to load bookings. Please refresh the page.");
+    alert("Failed to load bookings. Please refresh.");
   }
   loading.style.display = "none";
   renderCalendar();
@@ -147,7 +146,6 @@ async function fetchBookings() {
 function renderCalendar() {
   monthLabel.textContent = viewDate.toLocaleString("en-GB", { month: "long", year: "numeric" });
   grid.innerHTML = "";
-
   for (const d of getMatrix(viewDate).flat()) {
     const iso = toISO(d);
     const booking = bookings.find(b => String(b.date) === iso);
@@ -186,7 +184,6 @@ function renderForm() {
     formBox.innerHTML = "<p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>";
     return;
   }
-
   const iso = toISO(selected);
   const taken = bookings.some(b => String(b.date) === iso);
 
@@ -195,9 +192,7 @@ function renderForm() {
       <h3 class='text-xl font-semibold'>${selected.toLocaleDateString()}</h3>
       <button id='changeDate' class='text-sm underline'>Change</button>
     </div>
-
     ${taken ? "<p class='mt-3 p-3 bg-red-50 border text-red-800 text-sm'>This date is already booked.</p>" : ""}
-
     <form id='bookingForm' class='mt-4 grid md:grid-cols-2 gap-4'>
       <div>
         <label class='block text-sm font-medium'>Full name</label>
@@ -245,7 +240,7 @@ function renderForm() {
         amount: parseFloat(fd.get("amount")).toFixed(2),
         dedication: fd.get("dedication") || "",
         synagogue: "Hadley Wood Shul",
-        admin_email: "ethansamuelross@gmail.com"  // SEND TO ETHAN
+        admin_email: "ethansamuelross@gmail.com"
       };
       userEmail = rec.email;
 
@@ -259,9 +254,7 @@ function renderForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(rec)
         });
-
         const json = await res.json();
-
         if (json && json.status === "success") {
           savedMsg.innerHTML = "Saved + Email Sent";
           savedMsg.classList.add("text-green-600");
@@ -299,7 +292,6 @@ function renderBookings() {
     : "<div class='p-4 rounded-xl bg-gray-50 border text-sm text-gray-600'>No bookings yet.</div>";
 }
 
-// === DELETE BOOKING (with email) ===
 async function deleteBooking(date, email) {
   if (!confirm("Remove your booking for " + date + "?")) return;
   try {
@@ -313,9 +305,7 @@ async function deleteBooking(date, email) {
 document.getElementById("prevBtn").onclick = () => { viewDate = addMonths(viewDate, -1); renderCalendar(); };
 document.getElementById("nextBtn").onclick = () => { viewDate = addMonths(viewDate, 1); renderCalendar(); };
 
-// Auto-refresh every 30 seconds
 setInterval(fetchBookings, 30000);
-
 fetchBookings();
 </script>
 
