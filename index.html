@@ -77,8 +77,14 @@
 </section>
 
 <script>
-// === CORS PROXY + DIRECT SCRIPT URL ===
-const PROXY_URL = "https://corsproxy.io/?";
+// === 3 RELIABLE CORS PROXIES (ROTATE ON FAIL) ===
+const PROXIES = [
+  "https://corsproxy.io/?",
+  "https://api.allorigins.win/raw?url=",
+  "https://cors-anywhere.herokuapp.com/"
+];
+let currentProxy = 0;
+
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyN9IRAmCbPsfdCafVP1k1OM0fvyK_TpHyIgMw8dKWsixIoYfYgN-pYm351vgRh2pt3/exec";
 
 const FESTIVALS = new Set([
@@ -126,19 +132,34 @@ function isSelectable(d) {
   return d.getDay() === 6 || FESTIVALS.has(iso);
 }
 
-// === FETCH BOOKINGS FROM SHEET (VIA PROXY) ===
+// === FETCH BOOKINGS WITH PROXY ROTATION ===
 async function fetchBookings() {
   loading.style.display = "block";
-  try {
-    const res = await fetch(PROXY_URL + SCRIPT_URL);
-    const data = await res.json();
-    bookings = Array.isArray(data) ? data : [];
-    localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
-  } catch (err) {
-    console.error("GET error:", err);
+  let success = false;
+
+  for (let i = 0; i < PROXIES.length; i++) {
+    try {
+      const proxy = PROXIES[currentProxy];
+      currentProxy = (currentProxy + 1) % PROXIES.length;
+      const res = await fetch(proxy + SCRIPT_URL + "&t=" + Date.now());
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      if (data && !data.status) {
+        bookings = Array.isArray(data) ? data : [];
+        localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
+        success = true;
+        break;
+      }
+    } catch (err) {
+      console.warn("Proxy failed:", PROXIES[(currentProxy - 1 + PROXIES.length) % PROXIES.length], err);
+    }
+  }
+
+  if (!success) {
     const saved = localStorage.getItem("kiddushBookings");
     bookings = saved ? JSON.parse(saved) : [];
   }
+
   loading.style.display = "none";
   renderCalendar();
   renderBookings();
@@ -254,24 +275,25 @@ function renderForm() {
       savedMsg.classList.remove("hidden");
 
       try {
-        // POST with no-cors (works)
-        await fetch(SCRIPT_URL, {
+        const proxy = PROXIES[currentProxy];
+        const res = await fetch(proxy + SCRIPT_URL, {
           method: "POST",
-          mode: 'no-cors',
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(rec)
         });
 
-        savedMsg.innerHTML = "Saved + Email Sent";
-        savedMsg.classList.add("text-green-600");
+        const json = await res.json();
 
-        bookings.push(rec);
-        localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
-
-        setTimeout(() => {
-          selected = null;
-          fetchBookings(); // Reload from sheet
-        }, 1500);
+        if (json && json.status === "success") {
+          savedMsg.innerHTML = "Saved + Email Sent";
+          savedMsg.classList.add("text-green-600");
+          setTimeout(() => {
+            selected = null;
+            fetchBookings();
+          }, 1500);
+        } else {
+          throw new Error(json.message || "Server error");
+        }
       } catch (err) {
         savedMsg.textContent = "Error: " + err.message;
         savedMsg.classList.add("text-red-600");
@@ -302,9 +324,8 @@ function renderBookings() {
 async function deleteBooking(date) {
   if (!confirm("Remove your booking for " + date + "?")) return;
   try {
-    await fetch(SCRIPT_URL + "?action=delete&date=" + date, { mode: 'no-cors' });
-    bookings = bookings.filter(b => b.date !== date);
-    localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
+    const proxy = PROXIES[currentProxy];
+    await fetch(proxy + SCRIPT_URL + "?action=delete&date=" + date);
     fetchBookings();
   } catch (err) {
     alert("Delete failed");
@@ -314,7 +335,9 @@ async function deleteBooking(date) {
 document.getElementById("prevBtn").onclick = () => { viewDate = addMonths(viewDate, -1); renderCalendar(); };
 document.getElementById("nextBtn").onclick = () => { viewDate = addMonths(viewDate, 1); renderCalendar(); };
 
-// Load from sheet + localStorage fallback
+// Auto-refresh every 30 seconds
+setInterval(fetchBookings, 30000);
+
 fetchBookings();
 </script>
 
