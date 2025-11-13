@@ -77,14 +77,8 @@
 </section>
 
 <script>
-// === 3 RELIABLE CORS PROXIES (ROTATE ON FAIL) ===
-const PROXIES = [
-  "https://corsproxy.io/?",
-  "https://api.allorigins.win/raw?url=",
-  "https://cors-anywhere.herokuapp.com/"
-];
-let currentProxy = 0;
-
+// === ONLY 1 RELIABLE PROXY (NO ACTIVATION NEEDED) ===
+const PROXY_URL = "https://api.allorigins.win/raw?url=";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyN9IRAmCbPsfdCafVP1k1OM0fvyK_TpHyIgMw8dKWsixIoYfYgN-pYm351vgRh2pt3/exec";
 
 const FESTIVALS = new Set([
@@ -132,34 +126,18 @@ function isSelectable(d) {
   return d.getDay() === 6 || FESTIVALS.has(iso);
 }
 
-// === FETCH BOOKINGS WITH PROXY ROTATION ===
+// === FETCH BOOKINGS FROM SHEET ===
 async function fetchBookings() {
   loading.style.display = "block";
-  let success = false;
-
-  for (let i = 0; i < PROXIES.length; i++) {
-    try {
-      const proxy = PROXIES[currentProxy];
-      currentProxy = (currentProxy + 1) % PROXIES.length;
-      const res = await fetch(proxy + SCRIPT_URL + "&t=" + Date.now());
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      if (data && !data.status) {
-        bookings = Array.isArray(data) ? data : [];
-        localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
-        success = true;
-        break;
-      }
-    } catch (err) {
-      console.warn("Proxy failed:", PROXIES[(currentProxy - 1 + PROXIES.length) % PROXIES.length], err);
-    }
+  try {
+    const res = await fetch(PROXY_URL + SCRIPT_URL + "&t=" + Date.now());
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    bookings = Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error("GET failed:", err);
+    alert("Failed to load bookings. Please refresh.");
   }
-
-  if (!success) {
-    const saved = localStorage.getItem("kiddushBookings");
-    bookings = saved ? JSON.parse(saved) : [];
-  }
-
   loading.style.display = "none";
   renderCalendar();
   renderBookings();
@@ -266,7 +244,8 @@ function renderForm() {
         email: fd.get("email"),
         amount: parseFloat(fd.get("amount")).toFixed(2),
         dedication: fd.get("dedication") || "",
-        synagogue: "Hadley Wood Shul"
+        synagogue: "Hadley Wood Shul",
+        admin_email: "ethansamuelross@gmail.com"  // SEND TO ETHAN
       };
       userEmail = rec.email;
 
@@ -275,8 +254,7 @@ function renderForm() {
       savedMsg.classList.remove("hidden");
 
       try {
-        const proxy = PROXIES[currentProxy];
-        const res = await fetch(proxy + SCRIPT_URL, {
+        const res = await fetch(PROXY_URL + SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(rec)
@@ -324,8 +302,7 @@ function renderBookings() {
 async function deleteBooking(date) {
   if (!confirm("Remove your booking for " + date + "?")) return;
   try {
-    const proxy = PROXIES[currentProxy];
-    await fetch(proxy + SCRIPT_URL + "?action=delete&date=" + date);
+    await fetch(PROXY_URL + SCRIPT_URL + "?action=delete&date=" + date);
     fetchBookings();
   } catch (err) {
     alert("Delete failed");
@@ -335,9 +312,7 @@ async function deleteBooking(date) {
 document.getElementById("prevBtn").onclick = () => { viewDate = addMonths(viewDate, -1); renderCalendar(); };
 document.getElementById("nextBtn").onclick = () => { viewDate = addMonths(viewDate, 1); renderCalendar(); };
 
-// Auto-refresh every 30 seconds
 setInterval(fetchBookings, 30000);
-
 fetchBookings();
 </script>
 
