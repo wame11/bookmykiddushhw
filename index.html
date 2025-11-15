@@ -102,6 +102,19 @@
   </div>
 </section>
 
+<!-- NEW SECTION ADDED HERE -->
+<section class="max-w-6xl mx-auto px-4 py-12 text-center text-gray-600">
+  <p>
+    This website was made by 
+    <a href="https://wame11.github.io/webcore/#about" class="text-indigo-600 hover:underline font-semibold">Webcore</a>
+    (Ethan Ross) and help from Craig Greene.
+    Please head to 
+    <a href="https://wame11.github.io/webcore/#about" class="text-indigo-600 hover:underline font-semibold">Webcore</a> 
+    to make your own site.
+  </p>
+</section>
+<!-- END NEW SECTION -->
+
 <section id="contact" class="max-w-6xl mx-auto px-4 py-16 border-t">
   <h2 class="text-2xl md:text-3xl font-bold mb-4">Contact</h2>
   <p class="text-gray-700 text-lg">
@@ -306,7 +319,6 @@ function renderForm() {
       savedMsg.classList.remove("hidden");
 
       try {
-        // POST with no-cors (works)
         await fetch(SCRIPT_URL, {
           method: "POST",
           mode: 'no-cors',
@@ -324,7 +336,7 @@ function renderForm() {
 
         setTimeout(() => {
           selected = null;
-          fetchBookings(); // Reload from sheet
+          fetchBookings();
         }, 1500);
       } catch (err) {
         savedMsg.textContent = "Error: " + err.message;
@@ -367,7 +379,6 @@ async function deleteBooking(date) {
 document.getElementById("prevBtn").onclick = () => { viewDate = addMonths(viewDate, -1); renderCalendar(); };
 document.getElementById("nextBtn").onclick = () => { viewDate = addMonths(viewDate, 1); renderCalendar(); };
 
-// Load from sheet + localStorage fallback
 fetchBookings();
 </script>
 
