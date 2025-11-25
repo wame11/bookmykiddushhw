@@ -218,12 +218,11 @@ function renderCalendar() {
       <span class='text-[11px]'>${iso}</span>
       ${
         taken
-          ? "<span class='chip bg-red-100 text-red-700'>Booked</span><span class='text-[10px] text-red-700'>" +
-            booking.name +
-            "</span>"
-          : selectable
-          ? "<span class='chip bg-green-100 text-green-700'>Available</span>"
-          : ""
+  ? "<span class='chip bg-red-100 text-red-700'>Booked</span>"
+  : selectable
+  ? "<span class='chip bg-green-100 text-green-700'>Available</span>"
+  : ""
+
       }
     `;
 
