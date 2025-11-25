@@ -135,7 +135,11 @@ function normaliseBackendDate(dateVal) {
   if (s.includes("T")) {
     const d = new Date(s);
     if (!isNaN(d.getTime())) {
-      return formatISO(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
+      return formatISO(
+        d.getUTCFullYear(),
+        d.getUTCMonth() + 1,
+        d.getUTCDate()
+      );
     }
   }
 
@@ -169,9 +173,8 @@ async function fetchBookings() {
   } catch (e) {
     const saved = localStorage.getItem("kiddushBookings");
     bookings = saved
-  ? JSON.parse(saved).map(b => ({ ...b, date: normaliseBackendDate(b.date) }))
-  : [];
-
+      ? JSON.parse(saved).map(b => ({ ...b, date: normaliseBackendDate(b.date) }))
+      : [];
   }
 
   loading.style.display = "none";
@@ -206,7 +209,8 @@ function renderCalendar() {
     const taken = !!booking;
     const isPast = d < makeDate(todayMid.getFullYear(), todayMid.getMonth() + 1, todayMid.getDate());
 
-    const selectable = isSaturdayOrFestival(d) && thisMonth && !taken && !isPast;
+    const selectable =
+      isSaturdayOrFestival(d) && thisMonth && !taken && !isPast;
 
     const cell = document.createElement("button");
     cell.disabled = !selectable;
@@ -221,11 +225,10 @@ function renderCalendar() {
       <span class='text-[11px]'>${iso}</span>
       ${
         taken
-  ? "<span class='chip bg-red-100 text-red-700'>Booked</span>"
-  : selectable
-  ? "<span class='chip bg-green-100 text-green-700'>Available</span>"
-  : ""
-
+          ? "<span class='chip bg-red-100 text-red-700'>Booked</span>"
+          : selectable
+          ? "<span class='chip bg-green-100 text-green-700'>Available</span>"
+          : ""
       }
     `;
 
