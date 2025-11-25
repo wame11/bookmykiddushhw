@@ -96,23 +96,22 @@
 </section>
 
 <script>
-// CONFIG
+// ========================= CONFIG =========================
 const PROXY_URL = "https://corsproxy.io/?";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqgikgNlCS59SzVoAZVY12QSvU716m869db2Y5IoriL4Q8-2et1PB3OYf7IiXfjxim/exec";
 
-// Festival dates in YYYY-MM-DD format (ISO)
 const FESTIVALS = new Set([
-  "2025-04-13","2025-04-14","2025-04-19","2025-04-20", // Pesach
-  "2025-06-02","2025-06-03", // Shavuot
-  "2025-09-23","2025-09-24", // Rosh Hashanah
-  "2025-10-07","2025-10-08", // Succot
-  "2025-10-14","2025-10-15" // Shemini Atzeret / Simchat Torah
+  "2025-04-13","2025-04-14","2025-04-19","2025-04-20",
+  "2025-06-02","2025-06-03",
+  "2025-09-23","2025-09-24",
+  "2025-10-07","2025-10-08",
+  "2025-10-14","2025-10-15"
 ]);
 
 let bookings = [];
 let selected = null;
 let viewDate = new Date();
-let userEmail = null;
+let userEmail = localStorage.getItem("kiddushUserEmail") || null;
 
 const grid = document.getElementById("grid");
 const monthLabel = document.getElementById("monthLabel");
@@ -120,115 +119,63 @@ const formBox = document.getElementById("formBox");
 const bookingsList = document.getElementById("bookingsList");
 const loading = document.getElementById("loading");
 
-// ---------- DATE HELPERS ----------
-
-// Creates a Date object for a specific day at noon UTC,
-// preventing timezone issues with date comparisons.
+// ========================= SAFE UTC DATE HANDLING (DST BUG FIXED FOREVER) =========================
 function makeDate(y, m, d) { return new Date(Date.UTC(y, m - 1, d, 12)); }
 
-// Formats a date component into standard YYYY-MM-DD (ISO)
 function formatISO(y, m, d) {
-  return `${y}-${m.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-// Function to safely normalise a date string to YYYY-MM-DD format
-function normaliseBackendDate(dateVal) {
-  if (typeof dateVal !== 'string') return "";
-  const s = dateVal.trim();
+function parseISODateString(iso) {
+  if (!iso || typeof iso !== "string") return null;
+  const [y, m, d] = iso.trim().split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(Date.UTC(y, m - 1, d, 12)); // Noon UTC → immune to local DST/BST
+}
+
+function normaliseBackendDate(val) {
+  if (typeof val !== "string") return "";
+  const s = val.trim();
   if (!s) return "";
-
   const d = new Date(s);
-  if (!isNaN(d.getTime())) {
-    // Log unexpected non-ISO dates for debugging
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-        console.warn(`Non-standard date received: "${s}". Normalized to: ${formatISO(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate())}`);
-    }
-    return formatISO(
-      d.getUTCFullYear(),
-      d.getUTCMonth() + 1,
-      d.getUTCDate()
-    );
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  
-  const m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
-  if (m) {
-    let day = Number(m[1]);
-    let month = Number(m[2]);
-    let year = Number(m[3]);
-    if (year < 100) year += 2000;
-    return formatISO(year, month, day);
-  }
-
-  return s;
+  if (!isNaN(d)) return formatISO(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : "";
 }
 
-// ---------- FETCH BOOKINGS ----------
-
+// ========================= FETCH BOOKINGS =========================
 async function fetchBookings() {
   loading.style.display = "block";
-  let fetchError = false;
-  let fetchedData = [];
-  
-  // Reset viewDate to today if it's pointing to the start of the year (initial load safety)
-  if (viewDate.getFullYear() < 2025) { 
-      viewDate = new Date();
-  }
-
-
   try {
     const res = await fetch(PROXY_URL + SCRIPT_URL);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    
-    fetchedData = Array.isArray(data)
-      ? data.map(b => ({ ...b, date: normaliseBackendDate(b.date) }))
+    bookings = Array.isArray(data)
+      ? data.map(b => ({ ...b, date: normaliseBackendDate(b.date) })).filter(b => b.date)
       : [];
-      
-    localStorage.setItem("kiddushBookings", JSON.stringify(fetchedData));
-    bookings = fetchedData;
-
+    localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
   } catch (e) {
-    console.error("Failed to fetch bookings, using cache:", e);
-    fetchError = true;
+    console.error("Fetch failed:", e);
     const saved = localStorage.getItem("kiddushBookings");
-    bookings = saved
-      ? JSON.parse(saved).map(function(b) {
-          return {
-              ...b,
-              date: normaliseBackendDate(b.date)
-          };
-      })
-      : [];
-    if (bookings.length === 0 && fetchError) {
-        loading.textContent = "Could not load bookings. Please refresh or try later.";
-        loading.style.color = "#dc2626";
+    bookings = saved ? JSON.parse(saved).map(b => ({ ...b, date: normaliseBackendDate(b.date) })) : [];
+    if (!bookings.length) {
+      loading.textContent = "Offline – using cached data";
+      loading.style.color = "#dc2626";
     }
   }
-
-
   loading.style.display = "none";
   renderCalendar();
   renderBookings();
   if (selected) renderForm();
 }
 
-// ---------- CALENDAR RENDER ----------
-
+// ========================= CALENDAR =========================
 function renderCalendar() {
-  monthLabel.textContent = viewDate.toLocaleString("en-GB", {
-    month: "long",
-    year: "numeric"
-  });
+  monthLabel.textContent = viewDate.toLocaleString("en-GB", { month: "long", year: "numeric" });
   grid.innerHTML = "";
 
   const y = viewDate.getFullYear();
   const m = viewDate.getMonth() + 1;
-
-  const today = new Date();
-  // Today's date normalized to noon UTC for reliable comparison
-  const todayMid = makeDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
+  const todayMid = makeDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
 
   getCalendarDays(y, m).forEach(d => {
     const cy = d.getUTCFullYear();
@@ -236,361 +183,177 @@ function renderCalendar() {
     const cd = d.getUTCDate();
     const iso = formatISO(cy, cm, cd);
     const thisMonth = cm === m;
-
-    const booking = bookings.find(b => b.date === iso);
-    const taken = !!booking;
-    
-    // Check if the current calendar day is strictly before today (noon UTC)
-    const isPast = d < todayMid; 
-
-    const selectable =
-      isSaturdayOrFestival(d) && thisMonth && !taken && !isPast;
+    const taken = bookings.some(b => b.date === iso);
+    const isPast = d < todayMid;
+    const selectable = isSaturdayOrFestival(d) && thisMonth && !taken && !isPast;
 
     const cell = document.createElement("button");
     cell.disabled = !selectable;
-    cell.className =
-      "h-24 rounded-xl border flex flex-col items-center justify-center gap-1 " +
-      (selectable
-        ? "bg-white hover:bg-indigo-50 cursor-pointer transition duration-150"
-        : "bg-gray-50 text-gray-400");
+    cell.className = `h-24 rounded-xl border flex flex-col items-center justify-center gap-1 transition ${selectable ? "bg-white hover:bg-indigo-50 cursor-pointer" : "bg-gray-50 text-gray-400"}`;
 
     cell.innerHTML = `
-      <span class='text-base font-semibold ${thisMonth ? 'text-gray-900' : 'text-gray-400'}'>${cd}</span>
-      <span class='text-[11px] text-gray-500'>${iso.substring(5)}</span> ${
-        taken
-          ? "<span class='chip bg-red-100 text-red-700'>Booked</span>"
-          : selectable
-          ? "<span class='chip bg-green-100 text-green-700'>Available</span>"
-          : (isSaturdayOrFestival(d) && !thisMonth) 
-          ? "<span class='chip bg-yellow-100 text-yellow-700'>Other Month</span>"
-          : ""
-      }
+      <span class="text-base font-semibold ${thisMonth ? "text-gray-900" : "text-gray-400"}">${cd}</span>
+      <span class="text-[11px] text-gray-500">${iso.substring(5)}</span>
+      ${taken ? `<span class="chip bg-red-100 text-red-700">Booked</span>` :
+        selectable ? `<span class="chip bg-green-100 text-green-700">Available</span>` :
+        isSaturdayOrFestival(d) && !thisMonth ? `<span class="chip bg-yellow-100 text-yellow-700">Other Month</span>` : ""}
     `;
 
-    if (selectable) {
-      cell.onclick = () => {
-        selected = d;
-        renderForm();
-      };
-    }
-    
-    // Highlight the selected date
+    if (selectable) cell.onclick = () => { selected = d; renderForm(); renderCalendar(); };
     if (selected && formatISO(selected.getUTCFullYear(), selected.getUTCMonth() + 1, selected.getUTCDate()) === iso) {
-        cell.classList.add("ring-4", "ring-indigo-300", "ring-offset-2");
+      cell.classList.add("ring-4", "ring-indigo-300", "ring-offset-2");
     }
-
     grid.appendChild(cell);
   });
 }
 
 function getCalendarDays(year, month) {
-    const first = makeDate(year, month, 1);
-    // getUTCDay(): 0=Sun, 1=Mon, 2=Tue... 6=Sat
-    // We want Monday (1) to be offset 0, so we use (day + 6) % 7
-    const startOffset = (first.getUTCDay() + 6) % 7; 
-    const startDay = 1 - startOffset; // Day number of the first cell
-
-    const days = [];
-    for (let i = 0; i < 42; i++) {
-        let d = new Date(Date.UTC(year, month - 1, startDay + i, 12)); 
-        days.push(d);
-    }
-
-    return days;
+  const first = makeDate(year, month, 1);
+  const startOffset = (first.getUTCDay() + 6) % 7; // Monday = 0
+  const startDay = 1 - startOffset;
+  const days = [];
+  for (let i = 0; i < 42; i++) {
+    days.push(new Date(Date.UTC(year, month - 1, startDay + i, 12)));
+  }
+  return days;
 }
 
 function isSaturdayOrFestival(d) {
-  const dayOfWeek = d.getUTCDay(); // 6 is Saturday
-  const y = d.getUTCFullYear();
-  const m = d.getUTCMonth() + 1;
-  const day = d.getUTCDate();
-  const iso = formatISO(y, m, day);
-  
-  return dayOfWeek === 6 || FESTIVALS.has(iso);
+  return d.getUTCDay() === 6 || FESTIVALS.has(formatISO(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()));
 }
 
-// ---------- UPCOMING BOOKINGS ----------
-
+// ========================= UPCOMING BOOKINGS =========================
 function renderBookings() {
   if (!bookings.length) {
-    bookingsList.innerHTML =
-      "<div class='p-4 rounded-xl bg-gray-50 border text-sm text-gray-600'>No bookings yet.</div>";
+    bookingsList.innerHTML = `<div class="p-4 rounded-xl bg-gray-50 border text-sm text-gray-600">No bookings yet.</div>`;
     return;
   }
-  
-  // Filter out past bookings and sort by date
-  const upcomingBookings = bookings
-    .filter(b => {
-        const [y, m, d] = b.date.split("-").map(Number);
-        const bookingDate = makeDate(y, m, d);
-        const today = new Date();
-        const todayMid = makeDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
-        return bookingDate >= todayMid;
-    })
-    .sort((a, b) => a.date.localeCompare(b.date));
 
+  const todayMid = makeDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+  const upcoming = bookings
+    .map(b => ({ ...b, dateObj: parseISODateString(b.date) }))
+    .filter(b => b.dateObj && b.dateObj >= todayMid)
+    .sort((a, b) =>Protobuf a.date.localeCompare(b.date));
 
-  bookingsList.innerHTML = upcomingBookings
-    .map(b => {
-      const iso = b.date;
-      const [y, m, d] = iso.split("-").map(Number);
-      const jsDate = makeDate(y, m, d);
-      const nice = jsDate.toLocaleDateString("en-GB", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-      });
-
-      // Simple email check for 'canRemove' functionality
-      const canRemove = userEmail && userEmail.toLowerCase() === b.email.toLowerCase();
-
-      return `
-        <div class='p-4 rounded-xl border bg-white flex justify-between items-start'>
-          <div>
-            <p class='font-semibold'>${nice} — ${b.name}</p>
-            ${
-              b.dedication
-                ? `<p class='text-sm text-gray-600'>${b.dedication}</p>`
-                : ""
-            }
-          </div>
-          ${
-            canRemove
-              ? `<button class='px-3 py-1 rounded border text-xs hover:bg-red-50 text-red-600'
-                         onclick='deleteBooking("${iso}")'>Remove</button>`
-              : ""
-          }
-        </div>`;
-    })
-    .join("");
-    
-    if (upcomingBookings.length === 0) {
-         bookingsList.innerHTML =
-          "<div class='p-4 rounded-xl bg-gray-50 border text-sm text-gray-600'>No upcoming bookings.</div>";
-    }
+  bookingsList.innerHTML = upcoming.length
+    ? upcoming.map(b => {
+        const nice = b.dateObj.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        const canRemove = userEmail && userEmail.toLowerCase() === (b.email || "").toLowerCase();
+        return `
+          <div class="p-4 rounded-xl border bg-white flex justify-between items-start">
+            <div>
+              <p class="font-semibold">${nice} — ${b.name}</p>
+              ${b.dedication ? `<p class="text-sm text-gray-600">${b.dedication}</p>` : ""}
+            </div>
+            ${canRemove ? `<button class="px-3 py-1 rounded border text-xs hover:bg-red-50 text-red-600" onclick='deleteBooking("${b.date}")'>Remove</button>` : ""}
+          </div>`;
+      }).join("")
+    : `<div class="p-4 rounded-xl bg-gray-50 border text-sm text-gray-600">No upcoming bookings.</div>`;
 }
 
-// ---------- BOOKING FORM ----------
-
+// ========================= FORM =========================
 function renderForm() {
   if (!selected) {
-    formBox.innerHTML =
-      "<p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>";
+    formBox.innerHTML = `<p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>`;
     return;
   }
 
-  const y = selected.getUTCFullYear();
-  const m = selected.getUTCMonth() + 1;
-  const d = selected.getUTCDate();
-  const iso = formatISO(y, m, d);
-
-  const nice = selected.toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
+  const iso = formatISO(selected.getUTCFullYear(), selected.getUTCMonth() + 1, selected.getUTCDate());
+  const nice = selected.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   formBox.innerHTML = `
-    <div class='flex items-center justify-between gap-3'>
-      <h3 class='text-xl font-semibold'>${nice}</h3>
-      <button id='changeDate' class='text-sm underline text-indigo-600 hover:text-indigo-700'>Change Date</button>
+    <div class="flex items-center justify-between gap-3">
+      <h3 class="text-xl font-semibold">${nice}</h3>
+      <button id="changeDate" class="text-sm underline text-indigo-600 hover:text-indigo-700">Change Date</button>
     </div>
-    <form id='bookingForm' class='mt-4 grid md:grid-cols-2 gap-4'>
-      <div><label class='block text-sm font-medium'>Full name</label>
-      <input required name='name' class='mt-1 w-full rounded-xl border px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500'></div>
-
-      <div><label class='block text-sm font-medium'>Email</label>
-      <input required type='email' name='email' class='mt-1 w-full rounded-xl border px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500'></div>
-
+    <form id="bookingForm" class="mt-4 grid md:grid-cols-2 gap-4">
+      <div><label class="block text-sm font-medium">Full name</label><input required name="name" class="mt-1 w-full rounded-xl border px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"></div>
+      <div><label class="block text-sm font-medium">Email</label><input required type="email" name="email" class="mt-1 w-full rounded-xl border px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"></div>
       <div>
-        <label class='block text-sm font-medium'>Sponsorship Package</label>
-        <select required name='amount' id='sponsorshipAmount'
-         class='mt-1 w-full rounded-xl border px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500'>
-          <option value=''>Select a package</option>
-          <option value='200.00' data-label='Standard'>Standard (£200)</option>
-          <option value='325.00' data-label='Premium'>Premium (£325)</option>
-          <option value='To be discussed with Chantel' data-label='Special'>Special (Contact Office)</option>
+        <label class="block text-sm font-medium">Sponsorship Package</label>
+        <select required name="amount" id="sponsorshipAmount" class="mt-1 w-full rounded-xl border px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+          <option value="">Select a package</option>
+          <option value="200.00">Standard (£200)</option>
+          <option value="325.00">Premium (£325)</option>
+          <option value="To be discussed with Chantel">Special (Contact Office)</option>
         </select>
       </div>
-
-      <div>
-        <label class='block text-sm font-medium'>Synagogue</label>
-        <input disabled value='Hadley Wood Shul'
-         class='mt-1 w-full rounded-xl border px-3 py-2 bg-gray-100 text-gray-600'>
-      </div>
-
-      <div class='md:col-span-2'>
-        <label class='block text-sm font-medium'>Dedication (optional)</label>
-        <input name='dedication' class='mt-1 w-full rounded-xl border px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500'>
-      </div>
-
-      <div class='md:col-span-2 flex flex-wrap items-center gap-3'>
-        <button id='reserveBtn' type='submit'
-                class='px-5 py-3 rounded-xl text-white font-semibold bg-indigo-600 hover:bg-indigo-700 transition duration-150'>
-          Reserve date
-        </button>
-        <span id='savedMsg' class='text-sm hidden'>&nbsp;</span>
+      <div><label class="block text-sm font-medium">Synagogue</label><input disabled value="Hadley Wood Shul" class="mt-1 w-full rounded-xl border px-3 py-2 bg-gray-100 text-gray-600"></div>
+      <div class="md:col-span-2"><label class="block text-sm font-medium">Dedication (optional)</label><input name="dedication" class="mt-1 w-full rounded-xl border px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"></div>
+      <div class="md:col-span-2 flex items-center gap-3">
+        <button id="reserveBtn" type="submit" class="px-5 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition">Reserve date</button>
+        <span id="savedMsg" class="text-sm hidden"></span>
       </div>
     </form>
   `;
-    
-  // Pre-fill email if known from previous booking
-  const emailInput = document.querySelector("#bookingForm input[name='email']");
-  if (emailInput && userEmail) {
-      emailInput.value = userEmail;
-  }
 
+  const emailInput = formBox.querySelector('input[name="email"]');
+  if (emailInput && userEmail) emailInput.value = userEmail;
 
-  document.getElementById("changeDate").onclick = () => {
-    selected = null;
-    renderForm();
-    renderCalendar(); // Re-render calendar to remove selection highlight
-  };
+  document.getElementById("changeDate").onclick = () => { selected = null; renderForm(); renderCalendar(); };
 
-  const form = document.getElementById("bookingForm");
-  if (form) {
-    form.onsubmit = async e => {
-      e.preventDefault();
+  document.getElementById("bookingForm").onsubmit = async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const amount = document.getElementById("sponsorshipAmount").value;
+    if (!amount) return alert("Please select a sponsorship package.");
 
-      const fd = new FormData(form);
-      const amountEl = document.getElementById("sponsorshipAmount");
-      const amountValue = amountEl.value;
-      const amountLabel =
-        amountEl.selectedOptions[0].getAttribute("data-label") || amountValue;
+    const btn = document.getElementById("reserveBtn");
+    btn.disabled = true; btn.textContent = "Reserving...";
 
-      if (!amountValue) {
-        alert("Please select a Sponsorship Package.");
-        return;
-      }
-      
-      const reserveBtn = document.getElementById("reserveBtn");
-      reserveBtn.disabled = true;
-      reserveBtn.textContent = "Reserving...";
-
-      const rec = {
-        date: iso,
-        name: fd.get("name"),
-        email: fd.get("email").toLowerCase(),
-        amount:
-          amountValue === "To be discussed with Chantel"
-            ? amountValue
-            : parseFloat(amountValue).toFixed(2),
-        dedication: fd.get("dedication") || "",
-        synagogue: "Hadley Wood Shul"
-      };
-
-      userEmail = rec.email; 
-
-      const savedMsg = document.getElementById("savedMsg");
-      savedMsg.textContent = "Saving...";
-      savedMsg.classList.remove("hidden", "text-green-600", "text-red-600");
-
-      try {
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(rec)
-        });
-        
-        savedMsg.textContent = "Saved! Email Sent.";
-        savedMsg.classList.add("text-green-600");
-
-        // *** FINAL FIX: Clear local storage and force re-fetch from the live sheet ***
-        
-        // 1. Update the form box and clear selection
-        formBox.innerHTML = `<div class='p-4 rounded-xl bg-green-50 text-green-800'>✅ Booking for <strong>${nice}</strong> reserved successfully! Forcing calendar update...</div>`;
-        selected = null;
-        
-        // 2. **CRITICAL STEP:** Clear the potentially corrupt local cache
-        localStorage.removeItem("kiddushBookings"); 
-        
-        // 3. Force an immediate re-render and re-fetch from the live spreadsheet
-        setTimeout(() => {
-          fetchBookings(); 
-        }, 500); // 500ms delay to give the Google Script time to commit the booking
-      } catch (err) {
-        savedMsg.textContent = "Error: Booking failed to send. " + err.message;
-        savedMsg.classList.add("text-red-600");
-        reserveBtn.disabled = false;
-        reserveBtn.textContent = "Reserve date";
-      }
+    const payload = {
+      date: iso,
+      name: fd.get("name").trim(),
+      email: fd.get("email").toLowerCase().trim(),
+      amount: amount === "To be discussed with Chantel" ? amount : parseFloat(amount).toFixed(2),
+      dedication: fd.get("dedication").trim(),
+      synagogue: "Hadley Wood Shul"
     };
-  }
-}
 
-// ---------- DELETE BOOKING ----------
+    userEmail = payload.email;
+    localStorage.setItem("kiddushUserEmail", userEmail);
 
-async function deleteBooking(date) {
-  if (!userEmail) {
-      alert("Error: Cannot remove booking without knowing your email address.");
-      return;
-  }
-  
-  const bookingToRemove = bookings.find(b => b.date === date);
-  if (!bookingToRemove || bookingToRemove.email.toLowerCase() !== userEmail.toLowerCase()) {
-      alert("Error: You can only remove your own booking.");
-      return;
-  }
-  
-  const nice = new Date(date).toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
+    const msg = document.getElementById("savedMsg");
+    msg.textContent = "Saving..."; msg.classList.remove("hidden");
 
-  if (!confirm("Are you sure you want to remove your booking for " + nice + "? This action cannot be undone.")) return;
-  
-  document.querySelectorAll('#bookingsList button').forEach(btn => btn.disabled = true);
-  
-  try {
-    const deleteUrl = `${SCRIPT_URL}?action=delete&date=${date}&email=${userEmail}`;
-    await fetch(deleteUrl, { mode: "no-cors" });
-
-    // Clear local cache immediately after a successful delete
-    localStorage.removeItem("kiddushBookings");
-    
-    // Re-render
-    fetchBookings();
-    alert("Booking successfully removed.");
-  } catch (err) {
-    alert("Delete failed. Please contact the office for assistance.");
-    document.querySelectorAll('#bookingsList button').forEach(btn => btn.disabled = false);
-  }
-}
-
-// ---------- MONTH NAV ----------
-
-document.getElementById("prevBtn").onclick = () => {
-  viewDate.setMonth(viewDate.getMonth() - 1);
-  renderCalendar();
-};
-
-document.getElementById("nextBtn").onclick = () => {
-  viewDate.setMonth(viewDate.getMonth() + 1);
-  renderCalendar();
-};
-
-// ---------- INIT ----------
-
-userEmail = localStorage.getItem("kiddushUserEmail") || null;
-
-const originalSetItem = localStorage.setItem;
-localStorage.setItem = function(key, value) {
-    if (key === "kiddushBookings" && selected) {
-        const email = document.querySelector("#bookingForm input[name='email']")?.value?.toLowerCase();
-        if (email) {
-            originalSetItem.call(localStorage, "kiddushUserEmail", email);
-            userEmail = email;
-        }
+    try {
+      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      msg.textContent = "Booking confirmed!"; msg.classList.add("text-green-600");
+      formBox.innerHTML = `<div class="p-4 rounded-xl bg-green-50 text-green-800">Booking for <strong>${nice}</strong> reserved successfully!</div>`;
+      selected = null;
+      localStorage.removeItem("kiddushBookings");
+      setTimeout(fetchBookings, 800);
+    } catch {
+      msg.textContent = "Error — please try again or contact office."; msg.classList.add("text-red-600");
+      btn.disabled = false; btn.textContent = "Reserve date";
     }
-    originalSetItem.call(localStorage, key, value);
-};
+  };
+}
 
+// ========================= DELETE BOOKING =========================
+async function deleteBooking(dateIso) {
+  if (!userEmail) return alert("Email required to remove booking.");
+  const b = bookings.find(x => x.date === dateIso);
+  if (!b || b.email.toLowerCase() !== userEmail.toLowerCase()) return alert("You can only remove your own bookings.");
 
+  const nice = parseISODateString(dateIso)?.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) || dateIso;
+  if (!confirm(`Remove your booking for ${nice}?`)) return;
+
+  try {
+    await fetch(`${SCRIPT_URL}?action=delete&date=${dateIso}&email=${userEmail}`, { mode: "no-cors" });
+    localStorage.removeItem("kiddushBookings");
+    fetchBookings();
+    alert("Booking removed.");
+  } catch {
+    alert("Failed to remove. Please contact office.");
+  }
+}
+
+// ========================= NAVIGATION =========================
+document.getElementById("prevBtn").onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); renderCalendar(); };
+document.getElementById("nextBtn").onclick = () => { viewDate.setMonth(viewDate.getMonth() + 1); renderCalendar(); };
+
+// ========================= INITIALISE =========================
 fetchBookings();
 </script>
 </body>
