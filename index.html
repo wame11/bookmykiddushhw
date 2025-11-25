@@ -149,6 +149,24 @@ const toISO = d => d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.get
 const startOfMonth = d => new Date(d.getFullYear(), d.getMonth(), 1);
 const addMonths = (d, m) => { const x = new Date(d); x.setMonth(x.getMonth() + m); return x; };
 
+// ---- NEW HELPERS TO FIX DATE SHIFT BUG ----
+
+// Turn "yyyy-mm-dd" into a local Date (no timezone shift)
+function parseLocalDate(iso) {
+  if (!iso) return null;
+  const parts = String(iso).slice(0, 10).split("-");
+  if (parts.length !== 3) return new Date(iso); // fallback
+  const [y, m, d] = parts.map(Number);
+  return new Date(y, m - 1, d);
+}
+
+// Normalise any booking.date value (string or Date) to "yyyy-mm-dd"
+function bookingISO(b) {
+  return String(b.date).slice(0, 10);
+}
+
+// -------------------------------------------
+
 function getMatrix(v) {
   const s = startOfMonth(v);
   const offset = (s.getDay() + 6) % 7;
@@ -197,7 +215,7 @@ function renderCalendar() {
 
   for (const d of getMatrix(viewDate).flat()) {
     const iso = toISO(d);
-    const booking = bookings.find(b => String(b.date).startsWith(iso));
+    const booking = bookings.find(b => bookingISO(b) === iso);
     const taken = !!booking;
     const canSelect = isSelectable(d) && d.getMonth() === viewDate.getMonth() && !taken;
 
@@ -235,11 +253,11 @@ function renderForm() {
   }
 
   const iso = toISO(selected);
-  const taken = bookings.some(b => String(b.date).startsWith(iso));
+  const taken = bookings.some(b => bookingISO(b) === iso);
 
   formBox.innerHTML = `
     <div class='flex items-center justify-between gap-3'>
-      <h3 class='text-xl font-semibold'>${selected.toLocaleDateString()}</h3>
+      <h3 class='text-xl font-semibold'>${selected.toLocaleDateString("en-GB")}</h3>
       <button id='changeDate' class='text-sm underline'>Change</button>
     </div>
 
@@ -303,7 +321,7 @@ function renderForm() {
       }
 
       const rec = {
-        date: iso,
+        date: toISO(selected),
         name: fd.get("name"),
         email: fd.get("email"),
         amount: amountValue === 'To be discussed with Chantel' ? amountValue : parseFloat(amountValue).toFixed(2), 
@@ -348,14 +366,18 @@ function renderBookings() {
   bookingsList.innerHTML = bookings.length
     ? bookings.map(b => {
         const canRemove = userEmail && userEmail === b.email;
+        const iso = bookingISO(b);
+        const dateObj = parseLocalDate(iso);
+        const niceDate = dateObj ? dateObj.toLocaleDateString("en-GB") : iso;
+
         return `
           <div class='p-4 rounded-xl border bg-white flex justify-between items-start'>
             <div>
-              <p class='font-semibold'>${new Date(b.date).toLocaleDateString()} — ${b.name}</p>
+              <p class='font-semibold'>${niceDate} — ${b.name}</p>
               ${b.dedication ? `<p class='text-sm text-gray-600'>${b.dedication}</p>` : ""}
             </div>
             ${canRemove
-              ? `<button class='px-3 py-1 rounded border text-xs hover:bg-gray-50' onclick='deleteBooking("${b.date}")'>Remove</button>`
+              ? `<button class='px-3 py-1 rounded border text-xs hover:bg-gray-50' onclick='deleteBooking("${iso}")'>Remove</button>`
               : ""}
           </div>`;
       }).join("")
@@ -366,7 +388,7 @@ async function deleteBooking(date) {
   if (!confirm("Remove your booking for " + date + "?")) return;
   try {
     await fetch(SCRIPT_URL + "?action=delete&date=" + date, { mode: 'no-cors' });
-    bookings = bookings.filter(b => b.date !== date);
+    bookings = bookings.filter(b => bookingISO(b) !== date);
     localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
     fetchBookings();
   } catch (err) {
