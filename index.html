@@ -341,17 +341,29 @@ function renderForm() {
   }
 }
 
-// *** THE CORRECTED renderBookings FUNCTION ***
 function renderBookings() {
   bookingsList.innerHTML = bookings.length
     ? bookings.map(b => {
         const canRemove = userEmail && userEmail === b.email;
+        let displayDate = 'Invalid Date';
+
+        // **THE FIX:** Try to parse the date string from the sheet.
+        const dateString = String(b.date).trim();
         
-        // FIX: Manually parse the date string to force a local date, avoiding UTC shift.
-        const dateParts = b.date.split('-');
-        // new Date(year, monthIndex, day) creates a date in the local timezone
-        const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-        const displayDate = localDate.toLocaleDateString();
+        // 1. Check for the new, correct yyyy-MM-dd format
+        if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const dateParts = dateString.split('-');
+            // new Date(year, monthIndex, day) forces local date.
+            const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            if (!isNaN(localDate.getTime())) {
+                displayDate = localDate.toLocaleDateString();
+            }
+        } 
+        // 2. Check for an old format, like DD/MM/YYYY or MM/DD/YYYY, and display it as is.
+        else if (dateString) {
+            // If it's a non-ISO date string (like "22/05/2026"), just display the string.
+             displayDate = dateString;
+        }
 
         return `
           <div class='p-4 rounded-xl border bg-white flex justify-between items-start'>
@@ -366,8 +378,6 @@ function renderBookings() {
       }).join("")
     : "<div class='p-4 rounded-xl bg-gray-50 border text-sm text-gray-600'>No bookings yet.</div>";
 }
-// *** END CORRECTED renderBookings FUNCTION ***
-
 
 async function deleteBooking(date) {
   if (!confirm("Remove your booking for " + date + "?")) return;
