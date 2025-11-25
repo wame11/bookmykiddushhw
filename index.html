@@ -173,9 +173,15 @@ async function fetchBookings() {
   } catch (e) {
     const saved = localStorage.getItem("kiddushBookings");
     bookings = saved
-      ? JSON.parse(saved).map(b => ({ ...b, date: normaliseBackendDate(b.date) }))
-      : [];
-  }
+        ? JSON.parse(saved).map(function(b) {
+            return {
+                ...b,
+                date: normaliseBackendDate(b.date)
+            };
+        })
+        : [];
+}
+
 
   loading.style.display = "none";
   renderCalendar();
