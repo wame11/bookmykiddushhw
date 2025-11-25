@@ -188,13 +188,22 @@ async function fetchBookings() {
   if (selected) renderForm();
 }
 
+// *** CORRECTED renderCalendar FUNCTION ***
 function renderCalendar() {
   monthLabel.textContent = viewDate.toLocaleString("en-GB", { month: "long", year: "numeric" });
   grid.innerHTML = "";
 
   for (const d of getMatrix(viewDate).flat()) {
     const iso = toISO(d);
-    const booking = bookings.find(b => String(b.date).startsWith(iso));
+    
+    // FIX: Parse the date string manually to force local time interpretation
+    // This ensures we look for the booking on the correct calendar day, not the day before.
+    const dateParts = iso.split('-');
+    const checkDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+    const checkISO = toISO(checkDate);
+
+    // Filter bookings to see if there is one on the specific date (ignoring time component)
+    const booking = bookings.find(b => String(b.date).startsWith(checkISO));
     const taken = !!booking;
     const canSelect = isSelectable(d) && d.getMonth() === viewDate.getMonth() && !taken;
 
@@ -224,6 +233,7 @@ function renderCalendar() {
     grid.appendChild(cell);
   }
 }
+// *** END CORRECTED renderCalendar FUNCTION ***
 
 function renderForm() {
   if (!selected) {
@@ -346,33 +356,23 @@ function renderBookings() {
   bookingsList.innerHTML = bookings.length
     ? bookings.map(b => {
         const canRemove = userEmail && userEmail === b.email;
-        let displayDate = 'Invalid Date';
+        let displayDate = String(b.date).trim();
 
-        const dateString = String(b.date).trim();
-        
-        // 1. Check for the yyyy-MM-dd format used by the calendar and new bookings
-        if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            const dateParts = dateString.split('-');
-            // Create date using (year, monthIndex, day) to force local time interpretation, fixing the off-by-one-day bug
+        // Check if the date is in yyyy-MM-dd format or yyyy-MM-ddT... format
+        if (displayDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+            const datePart = displayDate.split('T')[0]; // Isolate YYYY-MM-DD
+            const dateParts = datePart.split('-');
+            
+            // new Date(year, monthIndex, day) creates a date in the local timezone
             const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            
             if (!isNaN(localDate.getTime())) {
                 displayDate = localDate.toLocaleDateString();
+            } else {
+                displayDate = 'Invalid Date';
             }
         } 
-        // 2. Check for the full ISO format (e.g., 2025-11-29T00:00:00.000Z) which comes from older/modified spreadsheet data
-        else if (dateString.includes('T')) {
-            const datePart = dateString.split('T')[0];
-            const dateParts = datePart.split('-');
-            // Re-apply the local time fix to the ISO part
-            const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-            if (!isNaN(localDate.getTime())) {
-                displayDate = localDate.toLocaleDateString();
-            }
-        }
-        // 3. Fallback for other non-ISO formats (e.g., MM/DD/YYYY) that might have come from the sheet
-        else if (dateString) {
-             displayDate = dateString;
-        }
+        // If it's another non-standard string (like the 22/05/2026 format), it will display as is.
 
         return `
           <div class='p-4 rounded-xl border bg-white flex justify-between items-start'>
