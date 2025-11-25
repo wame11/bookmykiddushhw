@@ -139,6 +139,10 @@ function normaliseBackendDate(dateVal) {
 
   const d = new Date(s);
   if (!isNaN(d.getTime())) {
+    // Log unexpected non-ISO dates for debugging
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        console.warn(`Non-standard date received: "${s}". Normalized to: ${formatISO(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate())}`);
+    }
     return formatISO(
       d.getUTCFullYear(),
       d.getUTCMonth() + 1,
@@ -167,7 +171,7 @@ async function fetchBookings() {
   let fetchError = false;
   let fetchedData = [];
   
-  // FIX: Reset viewDate to today if it's pointing to the start of the year (initial load bug)
+  // Reset viewDate to today if it's pointing to the start of the year (initial load safety)
   if (viewDate.getFullYear() < 2025) { 
       viewDate = new Date();
   }
@@ -302,7 +306,6 @@ function isSaturdayOrFestival(d) {
   const day = d.getUTCDate();
   const iso = formatISO(y, m, day);
   
-  // FIX: Explicitly check for Saturday or inclusion in FESTIVALS set
   return dayOfWeek === 6 || FESTIVALS.has(iso);
 }
 
@@ -495,37 +498,19 @@ function renderForm() {
         savedMsg.textContent = "Saved! Email Sent.";
         savedMsg.classList.add("text-green-600");
 
-        // *** FIX: Optimistically update local data immediately to prevent "snap back" ***
+        // *** FINAL FIX: Clear local storage and force re-fetch from the live sheet ***
         
-        // Update local array
-        bookings = bookings.filter(b => b.date !== rec.date); 
-        bookings.push({
-          ...rec,
-          amount:
-            amountValue === "To be discussed with Chantel"
-              ? amountLabel
-              : `£${parseFloat(amountValue).toFixed(2)}`,
-          email: rec.email
-        });
-        
-        // Update local storage immediately
-        localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
-        
-        // Update the form box and clear selection
-        formBox.innerHTML = `<div class='p-4 rounded-xl bg-green-50 text-green-800'>✅ Booking for <strong>${nice}</strong> reserved successfully! Updating calendar...</div>`;
+        // 1. Update the form box and clear selection
+        formBox.innerHTML = `<div class='p-4 rounded-xl bg-green-50 text-green-800'>✅ Booking for <strong>${nice}</strong> reserved successfully! Forcing calendar update...</div>`;
         selected = null;
         
-        // Immediately re-render calendar and bookings list with the optimistic local data
-        renderCalendar(); 
-        renderBookings(); 
+        // 2. **CRITICAL STEP:** Clear the potentially corrupt local cache
+        localStorage.removeItem("kiddushBookings"); 
         
-        // *** End Immediate Fix ***
-
-
-        // Then, after a short delay, fetch the live data to ensure accuracy and update the local cache
+        // 3. Force an immediate re-render and re-fetch from the live spreadsheet
         setTimeout(() => {
           fetchBookings(); 
-        }, 1500);
+        }, 500); // 500ms delay to give the Google Script time to commit the booking
       } catch (err) {
         savedMsg.textContent = "Error: Booking failed to send. " + err.message;
         savedMsg.classList.add("text-red-600");
@@ -565,9 +550,8 @@ async function deleteBooking(date) {
     const deleteUrl = `${SCRIPT_URL}?action=delete&date=${date}&email=${userEmail}`;
     await fetch(deleteUrl, { mode: "no-cors" });
 
-    // Remove from local array immediately
-    bookings = bookings.filter(b => b.date !== date);
-    localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
+    // Clear local cache immediately after a successful delete
+    localStorage.removeItem("kiddushBookings");
     
     // Re-render
     fetchBookings();
