@@ -133,13 +133,31 @@ function parseISODateString(iso) {
   return new Date(Date.UTC(y, m - 1, d, 12));
 }
 
+// ===== FIXED normaliseBackendDate: handle YYYY-MM-DD and DD/MM/YYYY safely =====
 function normaliseBackendDate(val) {
   if (typeof val !== "string") return "";
   const s = val.trim();
   if (!s) return "";
+
+  // If already in ISO YYYY-MM-DD, return as-is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+  // If in UK display format DD/MM/YYYY (e.g. from getDisplayValues), parse parts directly
+  const ddmmyyyy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (ddmmyyyy) {
+    const day = Number(ddmmyyyy[1]);
+    const month = Number(ddmmyyyy[2]);
+    const year = Number(ddmmyyyy[3]);
+    if (year && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return formatISO(year, month, day);
+    }
+  }
+
+  // Last resort: try Date parsing, but use UTC parts to avoid local-midnight -> UTC shift errors
   const d = new Date(s);
   if (!isNaN(d)) return formatISO(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
-  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : "";
+
+  return "";
 }
 
 // ======================== FETCH ========================
