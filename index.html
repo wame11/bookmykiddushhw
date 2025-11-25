@@ -341,27 +341,36 @@ function renderForm() {
   }
 }
 
+// *** CORRECTED renderBookings FUNCTION ***
 function renderBookings() {
   bookingsList.innerHTML = bookings.length
     ? bookings.map(b => {
         const canRemove = userEmail && userEmail === b.email;
         let displayDate = 'Invalid Date';
 
-        // **THE FIX:** Try to parse the date string from the sheet.
         const dateString = String(b.date).trim();
         
-        // 1. Check for the new, correct yyyy-MM-dd format
+        // 1. Check for the yyyy-MM-dd format used by the calendar and new bookings
         if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
             const dateParts = dateString.split('-');
-            // new Date(year, monthIndex, day) forces local date.
+            // Create date using (year, monthIndex, day) to force local time interpretation, fixing the off-by-one-day bug
             const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
             if (!isNaN(localDate.getTime())) {
                 displayDate = localDate.toLocaleDateString();
             }
         } 
-        // 2. Check for an old format, like DD/MM/YYYY or MM/DD/YYYY, and display it as is.
+        // 2. Check for the full ISO format (e.g., 2025-11-29T00:00:00.000Z) which comes from older/modified spreadsheet data
+        else if (dateString.includes('T')) {
+            const datePart = dateString.split('T')[0];
+            const dateParts = datePart.split('-');
+            // Re-apply the local time fix to the ISO part
+            const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            if (!isNaN(localDate.getTime())) {
+                displayDate = localDate.toLocaleDateString();
+            }
+        }
+        // 3. Fallback for other non-ISO formats (e.g., MM/DD/YYYY) that might have come from the sheet
         else if (dateString) {
-            // If it's a non-ISO date string (like "22/05/2026"), just display the string.
              displayDate = dateString;
         }
 
@@ -378,6 +387,7 @@ function renderBookings() {
       }).join("")
     : "<div class='p-4 rounded-xl bg-gray-50 border text-sm text-gray-600'>No bookings yet.</div>";
 }
+// *** END CORRECTED renderBookings FUNCTION ***
 
 async function deleteBooking(date) {
   if (!confirm("Remove your booking for " + date + "?")) return;
