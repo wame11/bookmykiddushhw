@@ -7,7 +7,6 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body { background: linear-gradient(to bottom,#eef2ff,white); }
-    /* Added filter-none for better compatibility, same effect as backdrop-filter */
     .card { background: rgba(255,255,255,0.85); backdrop-filter: saturate(1.2) blur(2px); -webkit-backdrop-filter: saturate(1.2) blur(2px); }
     .chip { font-size: 10px; padding: .125rem .5rem; border-radius: 9999px; }
     #loading { display: none; text-align: center; padding: 1rem; color: #555; }
@@ -279,20 +278,22 @@ function renderCalendar() {
 }
 
 function getCalendarDays(year, month) {
-  const first = makeDate(year, month, 1);
-  // first.getUTCDay() returns 0 for Sunday, 1 for Monday... 6 for Saturday.
-  // We want Monday to be the start of the week (index 0), so we use (day + 6) % 7
-  const startOffset = (first.getUTCDay() + 6) % 7; 
-  const startDay = 1 - startOffset; // Day number of the first cell (can be negative, meaning previous month)
+    const first = makeDate(year, month, 1);
+    // getUTCDay(): 0=Sun, 1=Mon, 2=Tue... 6=Sat
+    // We want Monday (1) to be offset 0, so we use (day + 6) % 7
+    // If first day is Mon (1), offset = (1+6)%7 = 0
+    // If first day is Sun (0), offset = (0+6)%7 = 6
+    const startOffset = (first.getUTCDay() + 6) % 7; 
+    const startDay = 1 - startOffset; // Day number of the first cell (can be negative, meaning previous month)
 
-  const days = [];
-  for (let i = 0; i < 42; i++) {
-    // Start date is the viewDate's month and day 1 - offset
-    let d = new Date(Date.UTC(year, month - 1, startDay + i, 12)); 
-    days.push(d);
-  }
+    const days = [];
+    for (let i = 0; i < 42; i++) {
+        // Start date is the viewDate's month and day 1 - offset
+        let d = new Date(Date.UTC(year, month - 1, startDay + i, 12)); 
+        days.push(d);
+    }
 
-  return days;
+    return days;
 }
 
 function isSaturdayOrFestival(d) {
