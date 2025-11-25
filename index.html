@@ -139,7 +139,6 @@ function normaliseBackendDate(dateVal) {
 
   const d = new Date(s);
   if (!isNaN(d.getTime())) {
-    // Use UTC methods to ensure the date is the *intended* date, not a local timezone date
     return formatISO(
       d.getUTCFullYear(),
       d.getUTCMonth() + 1,
@@ -167,6 +166,12 @@ async function fetchBookings() {
   loading.style.display = "block";
   let fetchError = false;
   let fetchedData = [];
+  
+  // FIX: Reset viewDate to today if it's pointing to the start of the year (initial load bug)
+  if (viewDate.getFullYear() < 2025) { 
+      viewDate = new Date();
+  }
+
 
   try {
     const res = await fetch(PROXY_URL + SCRIPT_URL);
@@ -177,12 +182,11 @@ async function fetchBookings() {
       ? data.map(b => ({ ...b, date: normaliseBackendDate(b.date) }))
       : [];
       
-    // IMPORTANT: Update local storage only on successful fetch
     localStorage.setItem("kiddushBookings", JSON.stringify(fetchedData));
     bookings = fetchedData;
 
   } catch (e) {
-    console.error("Failed to fetch bookings:", e);
+    console.error("Failed to fetch bookings, using cache:", e);
     fetchError = true;
     const saved = localStorage.getItem("kiddushBookings");
     bookings = saved
@@ -193,11 +197,9 @@ async function fetchBookings() {
           };
       })
       : [];
-    if (bookings.length > 0) {
-        console.warn("Using cached bookings due to fetch failure.");
-    } else if (fetchError) {
+    if (bookings.length === 0 && fetchError) {
         loading.textContent = "Could not load bookings. Please refresh or try later.";
-        loading.style.color = "#dc2626"; // red
+        loading.style.color = "#dc2626";
     }
   }
 
@@ -233,7 +235,8 @@ function renderCalendar() {
 
     const booking = bookings.find(b => b.date === iso);
     const taken = !!booking;
-    // Check if the current calendar day is before today (noon UTC)
+    
+    // Check if the current calendar day is strictly before today (noon UTC)
     const isPast = d < todayMid; 
 
     const selectable =
@@ -249,8 +252,7 @@ function renderCalendar() {
 
     cell.innerHTML = `
       <span class='text-base font-semibold ${thisMonth ? 'text-gray-900' : 'text-gray-400'}'>${cd}</span>
-      <span class='text-[11px] text-gray-500'>${iso}</span>
-      ${
+      <span class='text-[11px] text-gray-500'>${iso.substring(5)}</span> ${
         taken
           ? "<span class='chip bg-red-100 text-red-700'>Booked</span>"
           : selectable
@@ -294,12 +296,14 @@ function getCalendarDays(year, month) {
 }
 
 function isSaturdayOrFestival(d) {
+  const dayOfWeek = d.getUTCDay(); // 6 is Saturday
   const y = d.getUTCFullYear();
   const m = d.getUTCMonth() + 1;
   const day = d.getUTCDate();
   const iso = formatISO(y, m, day);
-  // Saturday is day 6 in UTC (0=Sun, 1=Mon... 6=Sat)
-  return d.getUTCDay() === 6 || FESTIVALS.has(iso);
+  
+  // FIX: Explicitly check for Saturday or inclusion in FESTIVALS set
+  return dayOfWeek === 6 || FESTIVALS.has(iso);
 }
 
 // ---------- UPCOMING BOOKINGS ----------
@@ -465,7 +469,7 @@ function renderForm() {
       const rec = {
         date: iso,
         name: fd.get("name"),
-        email: fd.get("email").toLowerCase(), // Normalize email
+        email: fd.get("email").toLowerCase(),
         amount:
           amountValue === "To be discussed with Chantel"
             ? amountValue
@@ -474,7 +478,7 @@ function renderForm() {
         synagogue: "Hadley Wood Shul"
       };
 
-      userEmail = rec.email; // Store the user's email
+      userEmail = rec.email; 
 
       const savedMsg = document.getElementById("savedMsg");
       savedMsg.textContent = "Saving...";
@@ -491,12 +495,10 @@ function renderForm() {
         savedMsg.textContent = "Saved! Email Sent.";
         savedMsg.classList.add("text-green-600");
 
-        // *** FIX START: Optimistically update local data immediately ***
+        // *** FIX: Optimistically update local data immediately to prevent "snap back" ***
         
-        // Remove old booking for the same date if one existed locally (e.g. from previous attempt)
+        // Update local array
         bookings = bookings.filter(b => b.date !== rec.date); 
-        
-        // Add the new booking
         bookings.push({
           ...rec,
           amount:
@@ -517,12 +519,12 @@ function renderForm() {
         renderCalendar(); 
         renderBookings(); 
         
-        // *** FIX END ***
+        // *** End Immediate Fix ***
 
 
-        // Then, after a short delay, fetch the live data to ensure accuracy
+        // Then, after a short delay, fetch the live data to ensure accuracy and update the local cache
         setTimeout(() => {
-          fetchBookings(); // Fetches live data to confirm and update cache
+          fetchBookings(); 
         }, 1500);
       } catch (err) {
         savedMsg.textContent = "Error: Booking failed to send. " + err.message;
