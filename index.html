@@ -196,8 +196,8 @@ function renderCalendar() {
   for (const d of getMatrix(viewDate).flat()) {
     const iso = toISO(d);
     
-    // FIX: Parse the date string manually to force local time interpretation
-    // This ensures we look for the booking on the correct calendar day, not the day before.
+    // FIX: Manually parse the date to force local time interpretation
+    // This stops the date from being shifted back one day (e.g., from 23rd to 22nd)
     const dateParts = iso.split('-');
     const checkDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     const checkISO = toISO(checkDate);
@@ -363,7 +363,7 @@ function renderBookings() {
             const datePart = displayDate.split('T')[0]; // Isolate YYYY-MM-DD
             const dateParts = datePart.split('-');
             
-            // new Date(year, monthIndex, day) creates a date in the local timezone
+            // FIX: new Date(year, monthIndex, day) forces local time interpretation
             const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
             
             if (!isNaN(localDate.getTime())) {
@@ -372,7 +372,6 @@ function renderBookings() {
                 displayDate = 'Invalid Date';
             }
         } 
-        // If it's another non-standard string (like the 22/05/2026 format), it will display as is.
 
         return `
           <div class='p-4 rounded-xl border bg-white flex justify-between items-start'>
