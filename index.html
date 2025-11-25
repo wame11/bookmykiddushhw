@@ -137,7 +137,6 @@ function normaliseBackendDate(dateVal) {
   const s = dateVal.trim();
   if (!s) return "";
 
-  // Assumes backend provides YYYY-MM-DD, or a parseable string like an ISO timestamp
   const d = new Date(s);
   if (!isNaN(d.getTime())) {
     // Use UTC methods to ensure the date is the *intended* date, not a local timezone date
@@ -148,17 +147,14 @@ function normaliseBackendDate(dateVal) {
     );
   }
 
-  // If it already looks like YYYY-MM-DD, return it
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   
-  // Attempt to parse common DD/MM/YYYY or DD-MM-YYYY formats (less reliable)
   const m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
   if (m) {
     let day = Number(m[1]);
     let month = Number(m[2]);
     let year = Number(m[3]);
     if (year < 100) year += 2000;
-    // Note: This relies on the convention being DD/MM/YYYY, which is common in UK
     return formatISO(year, month, day);
   }
 
@@ -170,17 +166,21 @@ function normaliseBackendDate(dateVal) {
 async function fetchBookings() {
   loading.style.display = "block";
   let fetchError = false;
+  let fetchedData = [];
 
   try {
     const res = await fetch(PROXY_URL + SCRIPT_URL);
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const data = await res.json();
-
-    bookings = Array.isArray(data)
+    
+    fetchedData = Array.isArray(data)
       ? data.map(b => ({ ...b, date: normaliseBackendDate(b.date) }))
       : [];
+      
+    // IMPORTANT: Update local storage only on successful fetch
+    localStorage.setItem("kiddushBookings", JSON.stringify(fetchedData));
+    bookings = fetchedData;
 
-    localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
   } catch (e) {
     console.error("Failed to fetch bookings:", e);
     fetchError = true;
@@ -281,14 +281,11 @@ function getCalendarDays(year, month) {
     const first = makeDate(year, month, 1);
     // getUTCDay(): 0=Sun, 1=Mon, 2=Tue... 6=Sat
     // We want Monday (1) to be offset 0, so we use (day + 6) % 7
-    // If first day is Mon (1), offset = (1+6)%7 = 0
-    // If first day is Sun (0), offset = (0+6)%7 = 6
     const startOffset = (first.getUTCDay() + 6) % 7; 
-    const startDay = 1 - startOffset; // Day number of the first cell (can be negative, meaning previous month)
+    const startDay = 1 - startOffset; // Day number of the first cell
 
     const days = [];
     for (let i = 0; i < 42; i++) {
-        // Start date is the viewDate's month and day 1 - offset
         let d = new Date(Date.UTC(year, month - 1, startDay + i, 12)); 
         days.push(d);
     }
@@ -484,35 +481,48 @@ function renderForm() {
       savedMsg.classList.remove("hidden", "text-green-600", "text-red-600");
 
       try {
-        const response = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(rec)
         });
         
-        // Note: Because of 'no-cors' mode, we can't reliably check the response status.
-        // We assume success unless the fetch itself throws.
-
         savedMsg.textContent = "Saved! Email Sent.";
         savedMsg.classList.add("text-green-600");
 
-        // Optimistically update local bookings list for immediate feedback
+        // *** FIX START: Optimistically update local data immediately ***
+        
+        // Remove old booking for the same date if one existed locally (e.g. from previous attempt)
+        bookings = bookings.filter(b => b.date !== rec.date); 
+        
+        // Add the new booking
         bookings.push({
           ...rec,
           amount:
             amountValue === "To be discussed with Chantel"
               ? amountLabel
               : `£${parseFloat(amountValue).toFixed(2)}`,
-          email: rec.email // Ensure email is correctly formatted/stored
+          email: rec.email
         });
         
-        // Remove the form to prevent double submission
-        formBox.innerHTML = `<div class='p-4 rounded-xl bg-green-50 text-green-800'>✅ Booking for <strong>${nice}</strong> reserved successfully! Redirecting...</div>`;
+        // Update local storage immediately
+        localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
+        
+        // Update the form box and clear selection
+        formBox.innerHTML = `<div class='p-4 rounded-xl bg-green-50 text-green-800'>✅ Booking for <strong>${nice}</strong> reserved successfully! Updating calendar...</div>`;
+        selected = null;
+        
+        // Immediately re-render calendar and bookings list with the optimistic local data
+        renderCalendar(); 
+        renderBookings(); 
+        
+        // *** FIX END ***
 
+
+        // Then, after a short delay, fetch the live data to ensure accuracy
         setTimeout(() => {
-          selected = null;
-          fetchBookings(); // Re-fetch all bookings to be certain
+          fetchBookings(); // Fetches live data to confirm and update cache
         }, 1500);
       } catch (err) {
         savedMsg.textContent = "Error: Booking failed to send. " + err.message;
@@ -547,15 +557,13 @@ async function deleteBooking(date) {
 
   if (!confirm("Are you sure you want to remove your booking for " + nice + "? This action cannot be undone.")) return;
   
-  // Disable all remove buttons temporarily
   document.querySelectorAll('#bookingsList button').forEach(btn => btn.disabled = true);
   
   try {
-    // Send the deletion request with email to verify and delete the correct entry
     const deleteUrl = `${SCRIPT_URL}?action=delete&date=${date}&email=${userEmail}`;
     await fetch(deleteUrl, { mode: "no-cors" });
 
-    // Remove from local array
+    // Remove from local array immediately
     bookings = bookings.filter(b => b.date !== date);
     localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
     
@@ -564,7 +572,6 @@ async function deleteBooking(date) {
     alert("Booking successfully removed.");
   } catch (err) {
     alert("Delete failed. Please contact the office for assistance.");
-    // Re-enable buttons on failure
     document.querySelectorAll('#bookingsList button').forEach(btn => btn.disabled = false);
   }
 }
@@ -583,10 +590,8 @@ document.getElementById("nextBtn").onclick = () => {
 
 // ---------- INIT ----------
 
-// Attempt to get user email from local storage on load (if previously set)
 userEmail = localStorage.getItem("kiddushUserEmail") || null;
 
-// Store user email on successful form submission
 const originalSetItem = localStorage.setItem;
 localStorage.setItem = function(key, value) {
     if (key === "kiddushBookings" && selected) {
