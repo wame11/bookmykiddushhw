@@ -129,20 +129,36 @@ function parseISODateString(iso){
   return makeDate(y,m,d);
 }
 
-// Defensive normaliser
+// Defensive normaliser — now handles:
+// - "YYYY-MM-DD" (already good),
+// - "YYYY-MM-DDTHH:MM:SSZ" (take first 10 chars),
+// - "DD/MM/YYYY" (UK display),
+// - other strings (fallback parse using UTC components)
 function normaliseBackendDate(val){
   if (val === null || val === undefined) return "";
   const s = String(val).trim();
   if (!s) return "";
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;                // already ISO
+
+  // 1) If full ISO date only:
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+  // 2) If ISO datetime (starts with yyyy-mm-ddT...) — take the date part directly
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
+    return s.slice(0,10);
+  }
+
+  // 3) Remove leading apostrophe and try dd/mm/yyyy
   const cleaned = s.startsWith("'") ? s.substring(1).trim() : s;
-  const uk = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); // dd/mm/yyyy
+  const uk = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (uk) {
     const day = Number(uk[1]), month = Number(uk[2]), year = Number(uk[3]);
     if (year && month>=1 && month<=12 && day>=1 && day<=31) return formatISO(year,month,day);
   }
-  const d = new Date(cleaned); // fallback
+
+  // 4) Fallback parse — convert to UTC date components to avoid timezone shifts
+  const d = new Date(cleaned);
   if (!isNaN(d)) return formatISO(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate());
+
   return "";
 }
 
