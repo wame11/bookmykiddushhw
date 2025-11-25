@@ -127,18 +127,15 @@ const formBox = document.getElementById("formBox");
 const bookingsList = document.getElementById("bookingsList");
 const loading = document.getElementById("loading");
 
-// === BULLETPROOF DATE HELPERS ===
-// NEVER use new Date(isoString) - always manual parse for local dates
+// === DST-PROOF DATE HELPERS ===
 const pad = n => n < 10 ? "0" + n : n;
 
 function parseLocalDate(iso) {
-  // Safe: Manual parse to local Date (no UTC shift)
   const [y, m, d] = iso.split('-').map(Number);
   return new Date(y, m - 1, d);
 }
 
 function toISO(d) {
-  // Safe: From local Date object
   return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 }
 
@@ -152,21 +149,46 @@ function addMonths(d, m) {
   return x; 
 }
 
+// === FIXED getMatrix: Pure math, no setDate() - 100% DST-proof ===
 function getMatrix(v) {
-  // Safe: All dates built with new Date(year, month, day) - no ISO parsing
-  const s = startOfMonth(v);
-  const offset = (s.getDay() + 6) % 7;
-  let c = new Date(s.getFullYear(), s.getMonth(), 1 - offset);
-  const out = [];
-  for (let w = 0; w < 6; w++) {
-    const r = [];
-    for (let day = 0; day < 7; day++) {
-      r.push(new Date(c.getFullYear(), c.getMonth(), c.getDate() + day));
-    }
-    out.push(r.flat());
-    c.setDate(c.getDate() + 7);
+  const year = v.getFullYear();
+  const month = v.getMonth();
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const offset = (firstDay + 6) % 7; // Days to subtract for Monday start (0-6)
+
+  // Start date: 1st - offset
+  let startDay = 1 - offset;
+  if (startDay <= 0) {
+    // Previous month
+    const prevMonth = new Date(year, month, 0); // Last day of prev month
+    startDay = prevMonth.getDate() + startDay; // e.g., 31 + (-3) = 28
   }
-  return out.flat();
+
+  const matrix = [];
+  let currentDay = startDay;
+  let currentMonth = month;
+  let currentYear = year;
+
+  for (let week = 0; week < 6; week++) {
+    const row = [];
+    for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+      // Build Date with EXACT local components - no shifts
+      const dateObj = new Date(currentYear, currentMonth, currentDay);
+      row.push(dateObj);
+      currentDay++;
+      
+      // Cross month boundary
+      const nextDayTest = new Date(currentYear, currentMonth, currentDay);
+      if (nextDayTest.getMonth() !== currentMonth) {
+        currentMonth = nextDayTest.getMonth();
+        currentYear = nextDayTest.getFullYear();
+        currentDay = 1;
+      }
+    }
+    matrix.push(row);
+    currentDay++; // Start next week
+  }
+  return matrix.flat();
 }
 
 function isSelectable(d) {
@@ -183,7 +205,7 @@ async function fetchBookings() {
     const res = await fetch(PROXY_URL + SCRIPT_URL);
     const data = await res.json();
     bookings = Array.isArray(data) ? data : [];
-    // Normalize all booking dates to clean YYYY-MM-DD (trim any T... )
+    // Clean dates
     bookings.forEach(b => b.date = String(b.date).trim().split('T')[0]);
     localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
   } catch (err) {
@@ -197,7 +219,7 @@ async function fetchBookings() {
   if (selected) renderForm();
 }
 
-// === FIXED CALENDAR: Direct string match, no Date parsing for bookings ===
+// === CALENDAR RENDER ===
 function renderCalendar() {
   monthLabel.textContent = viewDate.toLocaleString("en-GB", { month: "long", year: "numeric" });
   grid.innerHTML = "";
@@ -207,7 +229,9 @@ function renderCalendar() {
     const iso = toISO(d);
     const isThisMonth = d.getMonth() === viewDate.getMonth();
 
-    // BULLETPROOF MATCH: Direct string compare - no Date objects for lookup!
+    // Debug log (remove after testing)
+    console.log(`Cell for ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}: ISO=${iso}, Day=${d.getDay()}`);
+
     const booking = bookings.find(b => b.date === iso);
     const taken = !!booking;
     const canSelect = isSelectable(d) && isThisMonth && !taken;
@@ -228,13 +252,17 @@ function renderCalendar() {
     `;
 
     if (canSelect) {
-      cell.onclick = () => { selected = d; renderForm(); };
+      cell.onclick = () => { 
+        selected = d; 
+        console.log(`Selected: ${toISO(d)} (day ${d.getDate()})`); // Debug
+        renderForm(); 
+      };
     }
     grid.appendChild(cell);
   }
 }
 
-// === FIXED BOOKINGS DISPLAY: Safe parse for formatting ===
+// === BOOKINGS RENDER ===
 function renderBookings() {
   if (!bookings.length) {
     bookingsList.innerHTML = "<div class='p-4 rounded-xl bg-gray-50 border text-sm text-gray-600'>No bookings yet.</div>";
@@ -242,7 +270,7 @@ function renderBookings() {
   }
 
   bookingsList.innerHTML = bookings.map(b => {
-    const dateObj = parseLocalDate(b.date); // Safe parse
+    const dateObj = parseLocalDate(b.date);
     const displayDate = dateObj.toLocaleDateString('en-GB', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
@@ -270,7 +298,6 @@ function renderForm() {
   }
 
   const iso = toISO(selected);
-  // Safe check: Direct string match
   const taken = bookings.some(b => b.date === iso);
 
   const displayDate = selected.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
@@ -330,7 +357,7 @@ function renderForm() {
       savedMsg.classList.remove("hidden");
 
       try {
-        const response = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
           method: "POST",
           mode: 'no-cors',
           headers: { "Content-Type": "application/json" },
@@ -340,7 +367,6 @@ function renderForm() {
         savedMsg.innerHTML = "Saved + Email Sent";
         savedMsg.classList.add("text-green-600");
 
-        // Add to local bookings with display amount
         const recDisplay = {...rec, amount: amountValue === 'To be discussed with Chantel' ? displayAmount : `£${amountValue}` };
         bookings.push(recDisplay);
         localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
@@ -354,7 +380,7 @@ function renderForm() {
   }
 }
 
-// === FIXED DELETE: Exact ISO string ===
+// === DELETE ===
 async function deleteBooking(dateIso) {
   if (!confirm(`Remove your booking for ${dateIso}?`)) return;
   try {
@@ -367,11 +393,10 @@ async function deleteBooking(dateIso) {
   }
 }
 
-// === EVENT LISTENERS ===
+// === EVENTS ===
 document.getElementById("prevBtn").onclick = () => { viewDate = addMonths(viewDate, -1); renderCalendar(); };
 document.getElementById("nextBtn").onclick = () => { viewDate = addMonths(viewDate, 1); renderCalendar(); };
 
-// Make deleteBooking global
 window.deleteBooking = deleteBooking;
 
 fetchBookings();
