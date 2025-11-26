@@ -429,14 +429,14 @@
                 userEmail = payload.email;
                 localStorage.setItem("kiddushUserEmail", userEmail);
 
-                const msg = document.getElementById("savedMsg");
+                 const msg = document.getElementById("savedMsg");
                 msg.textContent = "Saving...";
-                msg.classList.remove("hidden");
+                msg. classList.remove("hidden");
 
                 try {
                     const res = await fetch(endpoint(), {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: { "Content-Type": "text/plain" },
                         body: JSON.stringify(payload)
                     });
 
