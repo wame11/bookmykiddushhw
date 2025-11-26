@@ -279,10 +279,15 @@ function renderForm(){
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      const text = await res.text();
-      let json = null;
-      try { json = JSON.parse(text); } catch(e) { /* ignore if not JSON */ }
+     const text = await res.text();
+console.log("=== RAW SERVER RESPONSE ===", text);  // This will show the truth!
 
+let json = null;
+try { json = JSON.parse(text); } catch(e) { 
+  console.error("Parse failed:", e, "Raw:", text); 
+}
+if (!res.ok) throw new Error("HTTP " + res.status + (json?.message ? (": "+json.message) : ""));
+if (json && json.status === "error") throw new Error(json.message || "Server error");
       if (!res.ok) throw new Error("HTTP " + res.status + (json?.message ? (": "+json.message) : ""));
       if (json && json.status === "error") throw new Error(json.message || "Server error");
 
