@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Book My Kiddush — Hadley Wood Shul</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
@@ -96,9 +96,14 @@
 </section>
 
 <script>
-// CONFIG
-const PROXY_URL = "https://corsproxy.io/?";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3hURi23rwBS6Na_bZYZmyM8-IRip2zO-4pGTKQ5OtDAFVywvJ3n7xFOXVFigbf-3E/exec";
+/*
+  Client config:
+  - Set SCRIPT_URL to your deployed Apps Script web app URL (recommended).
+  - If you must use a proxy, set USE_PROXY = true and ensure PROXY_URL works for POSTs.
+*/
+const USE_PROXY = false; // set to true only if you need the proxy
+const PROXY_URL = "https://corsproxy.io/?"; // optional proxy
+const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec"; // <-- REPLACE with your deployed web app URL
 
 const FESTIVALS = new Set([
   "2025-04-13","2025-04-14","2025-04-19","2025-04-20",
@@ -119,55 +124,39 @@ const formBox = document.getElementById("formBox");
 const bookingsList = document.getElementById("bookingsList");
 const loading = document.getElementById("loading");
 
-// Helpers: use UTC-noon to avoid DST shifts
-function makeDate(y,m,d){ return new Date(Date.UTC(y,m-1,d,12)); }
-function formatISO(y,m,d){ return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
-function parseISODateString(iso){
-  if(!iso||typeof iso!=="string") return null;
-  const [y,m,d] = iso.trim().split("-").map(Number);
-  if(!y||!m||!d) return null;
-  return makeDate(y,m,d);
+function endpoint(path = "") {
+  const base = USE_PROXY ? (PROXY_URL + SCRIPT_URL) : SCRIPT_URL;
+  return path ? (base + path) : base;
 }
 
-// Defensive normaliser — handles "YYYY-MM-DD", "YYYY-MM-DDTHH:MM:SSZ", "DD/MM/YYYY", and other parseable strings
+function makeDate(y,m,d){ return new Date(Date.UTC(y,m-1,d,12)); }
+function formatISO(y,m,d){ return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
+function parseISODateString(iso){ if(!iso) return null; const [y,m,d] = iso.trim().split("-").map(Number); if(!y||!m||!d) return null; return makeDate(y,m,d); }
+
 function normaliseBackendDate(val){
   if (val === null || val === undefined) return "";
   const s = String(val).trim();
   if (!s) return "";
-
-  // 1) If full ISO date only:
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-
-  // 2) If ISO datetime (starts with yyyy-mm-ddT...) — take the date part directly
-  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
-    return s.slice(0,10);
-  }
-
-  // 3) Remove leading apostrophe and try dd/mm/yyyy
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) return s.slice(0,10);
   const cleaned = s.startsWith("'") ? s.substring(1).trim() : s;
   const uk = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (uk) {
     const day = Number(uk[1]), month = Number(uk[2]), year = Number(uk[3]);
     if (year && month>=1 && month<=12 && day>=1 && day<=31) return formatISO(year,month,day);
   }
-
-  // 4) Fallback parse — convert to UTC date components to avoid timezone shifts
   const d = new Date(cleaned);
   if (!isNaN(d)) return formatISO(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate());
-
   return "";
 }
 
-// FETCH
 async function fetchBookings(){
   loading.style.display = "block";
   try {
-    const res = await fetch(PROXY_URL + SCRIPT_URL);
+    const res = await fetch(endpoint());
     if(!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    console.debug("API raw:", data);
     bookings = Array.isArray(data) ? data.map(b => ({ ...b, date: normaliseBackendDate(b.date) })).filter(b => b.date) : [];
-    console.debug("Normalized bookings:", bookings);
     localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
   } catch(e){
     console.error("Fetch failed:", e);
@@ -180,7 +169,6 @@ async function fetchBookings(){
   if (selected) renderForm();
 }
 
-// CALENDAR & RENDERING
 function renderCalendar(){
   monthLabel.textContent = viewDate.toLocaleString("en-GB", { month: "long", year: "numeric" });
   grid.innerHTML = "";
@@ -286,19 +274,16 @@ function renderForm(){
     msg.textContent = "Saving..."; msg.classList.remove("hidden");
 
     try {
-      // POST through the same CORS proxy used for GET so we don't need no-cors mode
-      const res = await fetch(PROXY_URL + SCRIPT_URL, {
+      const res = await fetch(endpoint(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
       const text = await res.text();
-      // try to parse JSON, but some proxies may return plain text
       let json = null;
-      try { json = JSON.parse(text); } catch (e) { /* ignore */ }
+      try { json = JSON.parse(text); } catch(e) { /* ignore if not JSON */ }
 
       if (!res.ok) throw new Error("HTTP " + res.status + (json?.message ? (": "+json.message) : ""));
-      // If Apps Script returns an error object, detect it
       if (json && json.status === "error") throw new Error(json.message || "Server error");
 
       msg.textContent = "Booking confirmed!"; msg.classList.remove("hidden"); msg.classList.add("text-green-600");
@@ -321,10 +306,9 @@ async function deleteBooking(dateIso){
   const nice = parseISODateString(dateIso)?.toLocaleDateString("en-GB", { timeZone:"Europe/London", weekday:"long", day:"numeric", month:"long", year:"numeric"}) || dateIso;
   if (!confirm(`Remove your booking for ${nice}?`)) return;
   try {
-    const url = PROXY_URL + SCRIPT_URL + `?action=delete&date=${encodeURIComponent(dateIso)}&email=${encodeURIComponent(userEmail)}`;
-    const res = await fetch(url);
+    const url = endpoint(`?action=delete&date=${encodeURIComponent(dateIso)}&email=${encodeURIComponent(userEmail)}`);
+    const res = await fetch(url, { method: "GET" });
     if (!res.ok) throw new Error("HTTP " + res.status);
-    // try parse
     const text = await res.text();
     let json = null;
     try { json = JSON.parse(text); } catch (e) {}
@@ -341,7 +325,6 @@ async function deleteBooking(dateIso){
 document.getElementById("prevBtn").onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); renderCalendar(); };
 document.getElementById("nextBtn").onclick = () => { viewDate.setMonth(viewDate.getMonth() + 1); renderCalendar(); };
 
-// Start
 fetchBookings();
 </script>
 </body>
