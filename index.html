@@ -286,14 +286,29 @@ function renderForm(){
     msg.textContent = "Saving..."; msg.classList.remove("hidden");
 
     try {
-      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      msg.textContent = "Booking confirmed!"; msg.classList.add("text-green-600");
+      // POST through the same CORS proxy used for GET so we don't need no-cors mode
+      const res = await fetch(PROXY_URL + SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const text = await res.text();
+      // try to parse JSON, but some proxies may return plain text
+      let json = null;
+      try { json = JSON.parse(text); } catch (e) { /* ignore */ }
+
+      if (!res.ok) throw new Error("HTTP " + res.status + (json?.message ? (": "+json.message) : ""));
+      // If Apps Script returns an error object, detect it
+      if (json && json.status === "error") throw new Error(json.message || "Server error");
+
+      msg.textContent = "Booking confirmed!"; msg.classList.remove("hidden"); msg.classList.add("text-green-600");
       formBox.innerHTML = `<div class="p-6 rounded-xl bg-green-50 text-green-800 text-center">Booking for <strong>${nice}</strong> reserved successfully!</div>`;
       selected = null;
       localStorage.removeItem("kiddushBookings");
       setTimeout(fetchBookings, 800);
-    } catch {
-      msg.textContent = "Error — please try again or contact office."; msg.classList.add("text-red-600");
+    } catch (err) {
+      console.error("Reservation failed:", err);
+      msg.textContent = "Error — please try again or contact office."; msg.classList.remove("hidden"); msg.classList.add("text-red-600");
       btn.disabled = false; btn.textContent = "Reserve date";
     }
   };
@@ -302,15 +317,23 @@ function renderForm(){
 async function deleteBooking(dateIso){
   if (!userEmail) return alert("Email required to remove booking.");
   const b = bookings.find(x => x.date === dateIso);
-  if (!b || b.email.toLowerCase() !== userEmail.toLowerCase()) return alert("You can only remove your own bookings.");
+  if (!b || (b.email||"").toLowerCase() !== userEmail.toLowerCase()) return alert("You can only remove your own bookings.");
   const nice = parseISODateString(dateIso)?.toLocaleDateString("en-GB", { timeZone:"Europe/London", weekday:"long", day:"numeric", month:"long", year:"numeric"}) || dateIso;
   if (!confirm(`Remove your booking for ${nice}?`)) return;
   try {
-    await fetch(`${SCRIPT_URL}?action=delete&date=${dateIso}&email=${userEmail}`, { mode: "no-cors" });
+    const url = PROXY_URL + SCRIPT_URL + `?action=delete&date=${encodeURIComponent(dateIso)}&email=${encodeURIComponent(userEmail)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    // try parse
+    const text = await res.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch (e) {}
+    if (json && json.status === "error") throw new Error(json.message || "Delete failed");
     localStorage.removeItem("kiddushBookings");
-    fetchBookings();
+    await fetchBookings();
     alert("Booking removed.");
-  } catch {
+  } catch (err) {
+    console.error("Delete failed:", err);
     alert("Failed to remove. Please contact office.");
   }
 }
