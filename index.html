@@ -13,7 +13,6 @@
   </style>
 </head>
 <body class="text-gray-900">
-
 <header class="sticky top-0 z-40 bg-white bg-opacity-70 backdrop-filter backdrop-blur border-b">
   <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
     <a href="#home" class="font-black tracking-tight text-xl">Book My Kiddush</a>
@@ -59,9 +58,7 @@
 <section id="calendar" class="max-w-6xl mx-auto px-4 py-16 border-t">
   <h2 class="text-2xl md:text-3xl font-bold">Choose your date</h2>
   <p class="mt-2 text-gray-700">Only Saturdays and preset Festivals are available.</p>
-
   <div id="loading" class="mt-4">Loading calendar...</div>
-
   <div class="mt-6 grid md:grid-cols-2 gap-8 items-start">
     <div class="card p-4 rounded-2xl border shadow-sm">
       <div class="flex items-center justify-between mb-4">
@@ -74,7 +71,6 @@
       </div>
       <div id="grid" class="grid grid-cols-7 gap-2 mt-3"></div>
     </div>
-
     <div class="space-y-6">
       <div id="formBox" class="card p-6 rounded-2xl border shadow-sm text-sm text-gray-700">
         <p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>
@@ -96,14 +92,10 @@
 </section>
 
 <script>
-/*
-  Client config:
-  - Set SCRIPT_URL to your deployed Apps Script web app URL (recommended).
-  - If you must use a proxy, set USE_PROXY = true and ensure PROXY_URL works for POSTs.
-*/
-const USE_PROXY = true; // set to true only if you need the proxy
-const PROXY_URL = "https://cors-proxy.appscript.workers.dev/?"; // optional proxy
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEUQsh9k8fiwZOEZt7KvUvb4inFXfxpWBoPJ2CvFCq1xps6K4h4j-XNjtev4p7YgFv/exec"; // <-- REPLACE with your deployed web app URL
+/* ==== FIXED & WORKING CONFIG ==== */
+const USE_PROXY = true;
+const PROXY_URL = "https://api.allorigins.win/get?url=";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEUQsh9k8fiwZOEZt7KvUvb4inFXfxpWBoPJ2CvFCq1xps6K4h4j-XNjtev4p7YgFv/exec";
 
 const FESTIVALS = new Set([
   "2025-04-13","2025-04-14","2025-04-19","2025-04-20",
@@ -125,8 +117,8 @@ const bookingsList = document.getElementById("bookingsList");
 const loading = document.getElementById("loading");
 
 function endpoint(path = "") {
-  const base = USE_PROXY ? (PROXY_URL + SCRIPT_URL) : SCRIPT_URL;
-  return path ? (base + path) : base;
+  const url = SCRIPT_URL + path;
+  return USE_PROXY ? PROXY_URL + encodeURIComponent(url) : url;
 }
 
 function makeDate(y,m,d){ return new Date(Date.UTC(y,m-1,d,12)); }
@@ -150,12 +142,26 @@ function normaliseBackendDate(val){
   return "";
 }
 
+// Helper to parse allorigins response
+async function parseProxyResponse(res) {
+  if (!res.ok) throw new Error("Network error: " + res.status);
+  const text = await res.text();
+  let data;
+  try {
+    const wrapped = JSON.parse(text);
+    data = wrapped.contents ? JSON.parse(wrapped.contents) : wrapped;
+  } catch (e) {
+    console.error("Failed to parse proxy response:", text);
+    throw new Error("Invalid response from server");
+  }
+  return data;
+}
+
 async function fetchBookings(){
   loading.style.display = "block";
   try {
     const res = await fetch(endpoint());
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
+    const data = await parseProxyResponse(res);
     bookings = Array.isArray(data) ? data.map(b => ({ ...b, date: normaliseBackendDate(b.date) })).filter(b => b.date) : [];
     localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
   } catch(e){
@@ -174,7 +180,6 @@ function renderCalendar(){
   grid.innerHTML = "";
   const y = viewDate.getFullYear(), m = viewDate.getMonth()+1;
   const todayMid = makeDate(new Date().getFullYear(), new Date().getMonth()+1, new Date().getDate());
-
   getCalendarDays(y,m).forEach(d=>{
     const cy = d.getUTCFullYear(), cm = d.getUTCMonth()+1, cd = d.getUTCDate();
     const iso = formatISO(cy,cm,cd);
@@ -182,16 +187,13 @@ function renderCalendar(){
     const taken = bookings.some(b => b.date === iso);
     const isPast = d < todayMid;
     const selectable = isSaturdayOrFestival(d) && thisMonth && !taken && !isPast;
-
     const cell = document.createElement("button");
     cell.disabled = !selectable;
     cell.className = `aspect-square rounded-xl border flex flex-col items-center justify-center gap-1 transition ${selectable ? "bg-white hover:bg-indigo-50 cursor-pointer" : "bg-gray-50 text-gray-400"}`;
-
     cell.innerHTML = `<span class="text-base font-semibold ${thisMonth ? "text-gray-900" : "text-gray-400"}">${cd}</span>
       ${taken ? `<span class="chip bg-red-100 text-red-700">Booked</span>` :
         selectable ? `<span class="chip bg-green-100 text-green-700">Available</span>` :
         isSaturdayOrFestival(d) && !thisMonth ? `<span class="chip bg-yellow-100 text-yellow-700">Other Month</span>` : ""}`;
-
     if (selectable) cell.onclick = () => { selected = d; renderForm(); renderCalendar(); };
     if (selected && formatISO(selected.getUTCFullYear(), selected.getUTCMonth()+1, selected.getUTCDate()) === iso) {
       cell.classList.add("ring-4","ring-indigo-400","ring-offset-2");
@@ -228,7 +230,6 @@ function renderForm(){
   if (!selected) { formBox.innerHTML = `<p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>`; return; }
   const iso = formatISO(selected.getUTCFullYear(), selected.getUTCMonth()+1, selected.getUTCDate());
   const nice = selected.toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "long", day: "numeric", month: "long", year: "numeric" });
-
   formBox.innerHTML = `
     <div class="flex items-center justify-between gap-3 mb-4">
       <h3 class="text-xl font-semibold">${nice}</h3>
@@ -244,21 +245,16 @@ function renderForm(){
       <div class="md:col-span-2 flex items-center gap-3"><button id="reserveBtn" type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 text-white">Reserve date</button><span id="savedMsg" class="text-sm hidden"></span></div>
     </form>
   `;
-
   const emailInput = formBox.querySelector('input[name="email"]');
   if (emailInput && userEmail) emailInput.value = userEmail;
-
   document.getElementById("changeDate").onclick = () => { selected = null; renderForm(); renderCalendar(); };
-
   document.getElementById("bookingForm").onsubmit = async e => {
     e.preventDefault();
     const fd = new FormData(e.target);
     const amount = document.getElementById("sponsorshipAmount").value;
     if (!amount) return alert("Please select a sponsorship package.");
-
     const btn = document.getElementById("reserveBtn");
     btn.disabled = true; btn.textContent = "Reserving...";
-
     const payload = {
       date: iso,
       name: fd.get("name").trim(),
@@ -267,38 +263,28 @@ function renderForm(){
       dedication: fd.get("dedication").trim(),
       synagogue: "Hadley Wood Shul"
     };
-
     userEmail = payload.email;
     localStorage.setItem("kiddushUserEmail", userEmail);
     const msg = document.getElementById("savedMsg");
     msg.textContent = "Saving..."; msg.classList.remove("hidden");
-
     try {
       const res = await fetch(endpoint(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-     const text = await res.text();
-console.log("=== RAW SERVER RESPONSE ===", text);  // This will show the truth!
+      const data = await parseProxyResponse(res);
+      if (data && data.status === "error") throw new Error(data.message || "Server error");
 
-let json = null;
-try { json = JSON.parse(text); } catch(e) { 
-  console.error("Parse failed:", e, "Raw:", text); 
-}
-if (!res.ok) throw new Error("HTTP " + res.status + (json?.message ? (": "+json.message) : ""));
-if (json && json.status === "error") throw new Error(json.message || "Server error");
-      if (!res.ok) throw new Error("HTTP " + res.status + (json?.message ? (": "+json.message) : ""));
-      if (json && json.status === "error") throw new Error(json.message || "Server error");
-
-      msg.textContent = "Booking confirmed!"; msg.classList.remove("hidden"); msg.classList.add("text-green-600");
+      msg.textContent = "Booking confirmed!"; msg.classList.add("text-green-600");
       formBox.innerHTML = `<div class="p-6 rounded-xl bg-green-50 text-green-800 text-center">Booking for <strong>${nice}</strong> reserved successfully!</div>`;
       selected = null;
       localStorage.removeItem("kiddushBookings");
       setTimeout(fetchBookings, 800);
     } catch (err) {
       console.error("Reservation failed:", err);
-      msg.textContent = "Error — please try again or contact office."; msg.classList.remove("hidden"); msg.classList.add("text-red-600");
+      msg.textContent = "Error — please try again or contact office.";
+      msg.classList.add("text-red-600");
       btn.disabled = false; btn.textContent = "Reserve date";
     }
   };
@@ -308,16 +294,12 @@ async function deleteBooking(dateIso){
   if (!userEmail) return alert("Email required to remove booking.");
   const b = bookings.find(x => x.date === dateIso);
   if (!b || (b.email||"").toLowerCase() !== userEmail.toLowerCase()) return alert("You can only remove your own bookings.");
-  const nice = parseISODateString(dateIso)?.toLocaleDateString("en-GB", { timeZone:"Europe/London", weekday:"long", day:"numeric", month:"long", year:"numeric"}) || dateIso;
-  if (!confirm(`Remove your booking for ${nice}?`)) return;
+  if (!confirm(`Remove your booking for ${dateIso}?`)) return;
   try {
     const url = endpoint(`?action=delete&date=${encodeURIComponent(dateIso)}&email=${encodeURIComponent(userEmail)}`);
-    const res = await fetch(url, { method: "GET" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-     text = await res.text();
-    let json = null;
-    try { json = JSON.parse(text); } catch (e) {}
-    if (json && json.status === "error") throw new Error(json.message || "Delete failed");
+    const res = await fetch(url);
+    const data = await parseProxyResponse(res);
+    if (data && data.status === "error") throw new Error(data.message || "Delete failed");
     localStorage.removeItem("kiddushBookings");
     await fetchBookings();
     alert("Booking removed.");
