@@ -103,7 +103,7 @@
 */
 const USE_PROXY = false; // set to true only if you need the proxy
 const PROXY_URL = "https://corsproxy.io/?"; // optional proxy
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5it7xKdb5YnNlMlORjNursaxGzpfdYfbMxg2e-SFVuoe_FSB1VXOnkJe2YAbZMelo/exec"; // <-- REPLACE with your deployed web app URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEUQsh9k8fiwZOEZt7KvUvb4inFXfxpWBoPJ2CvFCq1xps6K4h4j-XNjtev4p7YgFv/exec"; // <-- REPLACE with your deployed web app URL
 
 const FESTIVALS = new Set([
   "2025-04-13","2025-04-14","2025-04-19","2025-04-20",
@@ -309,7 +309,7 @@ async function deleteBooking(dateIso){
     const url = endpoint(`?action=delete&date=${encodeURIComponent(dateIso)}&email=${encodeURIComponent(userEmail)}`);
     const res = await fetch(url, { method: "GET" });
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const text = await res.text();
+     text = await res.text();
     let json = null;
     try { json = JSON.parse(text); } catch (e) {}
     if (json && json.status === "error") throw new Error(json.message || "Delete failed");
