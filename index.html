@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Book My Kiddush — Hadley Wood Shul</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind. min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: linear-gradient(to bottom,#eef2ff,white); }
         . card { background: rgba(255,255,255,0.85); backdrop-filter: saturate(1.2) blur(2px); -webkit-backdrop-filter: saturate(1.2) blur(2px); }
@@ -56,7 +56,7 @@
             </div>
 
             <div>
-                <h3 class="font-semibold text-lg text-indigo-700">What about Bar/Bat Mitzvahs? </h3>
+                <h3 class="font-semibold text-lg text-indigo-700">What about Bar/Bat Mitzvahs?</h3>
                 <p class="mt-1">By all means book your kiddush but please be aware there is a separate process for booking bar/bat mizvah celebrations through the office.</p>
             </div>
 
@@ -112,15 +112,11 @@
         <h2 class="text-2xl md:text-3xl font-bold mb-4">Contact</h2>
         <p class="text-gray-700 text-lg">
             For any questions or assistance, please contact
-            <a href="mailto:office@hwjc.org. uk" class="text-indigo-600 hover:underline font-medium">office@hwjc.org.uk</a>. 
+            <a href="mailto:office@hwjc.org. uk" class="text-indigo-600 hover:underline font-medium">office@hwjc.org.uk</a>.
         </p>
     </section>
 
     <script>
-        /*
-          Client config:
-          - Set SCRIPT_URL to your deployed Apps Script web app URL (recommended). 
-        */
         const USE_PROXY = false;
         const PROXY_URL = "https://corsproxy.io/? ";
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGSbPyBZdddJNl6PzUHMsI2W-NoUDxAfGyQ-lKKOMcVnIiGtXiLfzp8YFM3IHpDZWQ/exec";
@@ -133,54 +129,59 @@
             "2025-10-14","2025-10-15"
         ]);
 
-        let bookings = [];
-        let selected = null;
-        let viewDate = new Date();
-        let userEmail = localStorage.getItem("kiddushUserEmail") || null;
+        var bookings = [];
+        var selected = null;
+        var viewDate = new Date();
+        var userEmail = localStorage.getItem("kiddushUserEmail") || null;
 
-        const grid = document.getElementById("grid");
-        const monthLabel = document.getElementById("monthLabel");
-        const formBox = document.getElementById("formBox");
-        const loading = document.getElementById("loading");
+        var grid = document.getElementById("grid");
+        var monthLabel = document.getElementById("monthLabel");
+        var formBox = document.getElementById("formBox");
+        var loading = document.getElementById("loading");
 
-        function endpoint(path = "") {
-            const base = USE_PROXY ? (PROXY_URL + SCRIPT_URL) : SCRIPT_URL;
+        function endpoint(path) {
+            var base = USE_PROXY ? (PROXY_URL + SCRIPT_URL) : SCRIPT_URL;
             return path ? (base + path) : base;
         }
 
-        function makeDate(y, m, d) { return new Date(Date.UTC(y, m - 1, d, 12)); }
-        function formatISO(y, m, d) { return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
+        function makeDate(y, m, d) { 
+            return new Date(Date.UTC(y, m - 1, d, 12)); 
+        }
+        
+        function formatISO(y, m, d) { 
+            return y + "-" + String(m).padStart(2,"0") + "-" + String(d). padStart(2,"0"); 
+        }
 
-        function normaliseBackendDate(val){
+        function normaliseBackendDate(val) {
             if (val === null || val === undefined) return "";
-            const s = String(val). trim();
+            var s = String(val). trim();
             if (! s) return "";
             if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-            if (/^\d{4}-\d{2}-\d{2}T/. test(s)) return s. slice(0,10);
-            const cleaned = s.startsWith("'") ? s.substring(1). trim() : s;
-            const uk = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (s.length > 10 && s.charAt(10) === 'T') return s. substring(0, 10);
+            var cleaned = s.charAt(0) === "'" ? s.substring(1). trim() : s;
+            var uk = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
             if (uk) {
-                const day = Number(uk[1]), month = Number(uk[2]), year = Number(uk[3]);
+                var day = Number(uk[1]), month = Number(uk[2]), year = Number(uk[3]);
                 if (year && month>=1 && month<=12 && day>=1 && day<=31) return formatISO(year,month,day);
             }
-            const d = new Date(cleaned);
-            if (! isNaN(d)) return formatISO(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate());
+            var d = new Date(cleaned);
+            if (! isNaN(d)) return formatISO(d.getUTCFullYear(), d.getUTCMonth()+1, d. getUTCDate());
             return "";
         }
 
-        async function fetchBookings(){
+        async function fetchBookings() {
             loading.style.display = "block";
             try {
-                const res = await fetch(endpoint());
-                if(! res.ok) throw new Error("HTTP " + res.status);
-                const data = await res.json();
+                var res = await fetch(endpoint());
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                var data = await res.json();
                 bookings = Array.isArray(data)
-                    ? data.map(b => ({ ... b, date: normaliseBackendDate(b.date) })). filter(b => b. date)
+                    ? data. map(function(b) { return { date: normaliseBackendDate(b.date) }; }). filter(function(b) { return b. date; })
                     : [];
                 localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
-            } catch(e){
+            } catch(e) {
                 console.error("Fetch failed:", e);
-                const saved = localStorage.getItem("kiddushBookings");
+                var saved = localStorage.getItem("kiddushBookings");
                 bookings = saved ? JSON.parse(saved) : [];
             }
 
@@ -189,99 +190,88 @@
             if (selected) renderForm();
         }
 
-        function renderCalendar(){
+        function renderCalendar() {
             monthLabel.textContent = viewDate.toLocaleString("en-GB", { month: "long", year: "numeric" });
             grid.innerHTML = "";
 
-            const y = viewDate.getFullYear();
-            const m = viewDate.getMonth() + 1;
-            const todayMid = makeDate(new Date().getFullYear(), new Date().getMonth()+1, new Date().getDate());
+            var y = viewDate.getFullYear();
+            var m = viewDate.getMonth() + 1;
+            var todayMid = makeDate(new Date().getFullYear(), new Date().getMonth()+1, new Date().getDate());
 
-            getCalendarDays(y,m). forEach(d => {
-                const cy = d.getUTCFullYear(), cm = d.getUTCMonth()+1, cd = d.getUTCDate();
-                const iso = formatISO(cy,cm,cd);
-                const thisMonth = cm === m;
-                const taken = bookings.some(b => b. date === iso);
-                const isPast = d < todayMid;
-                const selectable = isSaturdayOrFestival(d) && thisMonth && !taken && !isPast;
-
-                const cell = document.createElement("button");
-                cell. disabled = ! selectable;
-                cell.className =
-                    `aspect-square rounded-xl border flex flex-col items-center justify-center gap-1 transition ${
-                        selectable ?  "bg-white hover:bg-indigo-50 cursor-pointer"
-                        : "bg-gray-50 text-gray-400"
-                    }`;
-
-                cell.innerHTML = `
-                    <span class="text-base font-semibold ${thisMonth ? "text-gray-900" : "text-gray-400"}">${cd}</span>
-                    ${
-                        taken
-                            ? `<span class="chip bg-red-100 text-red-700">Booked</span>`
-                            : selectable
-                                ? `<span class="chip bg-green-100 text-green-700">Available</span>`
-                                : (isSaturdayOrFestival(d) && ! thisMonth
-                                    ? `<span class="chip bg-yellow-100 text-yellow-700">Other Month</span>`
-                                    : ""
-                                  )
+            var days = getCalendarDays(y, m);
+            for (var i = 0; i < days.length; i++) {
+                var d = days[i];
+                var cy = d.getUTCFullYear(), cm = d.getUTCMonth()+1, cd = d.getUTCDate();
+                var iso = formatISO(cy, cm, cd);
+                var thisMonth = cm === m;
+                var taken = false;
+                for (var j = 0; j < bookings.length; j++) {
+                    if (bookings[j].date === iso) {
+                        taken = true;
+                        break;
                     }
-                `;
+                }
+                var isPast = d < todayMid;
+                var selectable = isSaturdayOrFestival(d) && thisMonth && !taken && !isPast;
 
-                if (selectable) {
-                    cell. onclick = () => {
-                        selected = d;
-                        renderForm();
-                        renderCalendar();
-                    };
+                var cell = document.createElement("button");
+                cell. disabled = ! selectable;
+                cell.className = "aspect-square rounded-xl border flex flex-col items-center justify-center gap-1 transition " +
+                    (selectable ? "bg-white hover:bg-indigo-50 cursor-pointer" : "bg-gray-50 text-gray-400");
+
+                var chipHtml = "";
+                if (taken) {
+                    chipHtml = '<span class="chip bg-red-100 text-red-700">Booked</span>';
+                } else if (selectable) {
+                    chipHtml = '<span class="chip bg-green-100 text-green-700">Available</span>';
+                } else if (isSaturdayOrFestival(d) && !thisMonth) {
+                    chipHtml = '<span class="chip bg-yellow-100 text-yellow-700">Other Month</span>';
                 }
 
-                if (
-                    selected &&
-                    formatISO(
-                        selected.getUTCFullYear(),
-                        selected.getUTCMonth()+1,
-                        selected.getUTCDate()
-                    ) === iso
-                ) {
-                    cell.classList.add("ring-4","ring-indigo-400","ring-offset-2");
+                cell. innerHTML = '<span class="text-base font-semibold ' + (thisMonth ? "text-gray-900" : "text-gray-400") + '">' + cd + '</span>' + chipHtml;
+
+                if (selectable) {
+                    (function(dateObj) {
+                        cell.onclick = function() {
+                            selected = dateObj;
+                            renderForm();
+                            renderCalendar();
+                        };
+                    })(d);
+                }
+
+                if (selected && formatISO(selected.getUTCFullYear(), selected.getUTCMonth()+1, selected.getUTCDate()) === iso) {
+                    cell.classList. add("ring-4", "ring-indigo-400", "ring-offset-2");
                 }
 
                 grid.appendChild(cell);
-            });
+            }
         }
 
-        function getCalendarDays(year, month){
-            const first = makeDate(year, month, 1);
-            const startOffset = (first.getUTCDay() + 6) % 7;
-            const startDay = 1 - startOffset;
-            const days = [];
-            for (let i = 0; i < 42; i++){
+        function getCalendarDays(year, month) {
+            var first = makeDate(year, month, 1);
+            var startOffset = (first.getUTCDay() + 6) % 7;
+            var startDay = 1 - startOffset;
+            var days = [];
+            for (var i = 0; i < 42; i++) {
                 days.push(new Date(Date.UTC(year, month - 1, startDay + i, 12)));
             }
             return days;
         }
 
-        function isSaturdayOrFestival(d){
-            return (
-                d.getUTCDay() === 6 ||
-                FESTIVALS.has(formatISO(d. getUTCFullYear(), d.getUTCMonth()+1, d. getUTCDate()))
-            );
+        function isSaturdayOrFestival(d) {
+            return d. getUTCDay() === 6 || FESTIVALS.has(formatISO(d. getUTCFullYear(), d.getUTCMonth()+1, d. getUTCDate()));
         }
 
-        function renderForm(){
+        function renderForm() {
             if (! selected) {
-                formBox. innerHTML =
-                    `<p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>`;
+                formBox. innerHTML = '<p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>';
                 return;
             }
 
-            const iso = formatISO(
-                selected.getUTCFullYear(),
-                selected. getUTCMonth() + 1,
-                selected.getUTCDate()
-            );
+            var iso = formatISO(selected.getUTCFullYear(), selected.getUTCMonth() + 1, selected.getUTCDate());
 
-            const nice = selected.toLocaleDateString("en-GB", {
+            var nice = selected.toLocaleDateString("en-GB", {
                 timeZone: "Europe/London",
                 weekday: "long",
                 day: "numeric",
@@ -289,110 +279,105 @@
                 year: "numeric"
             });
 
-            formBox.innerHTML = `
-                <div class="flex items-center justify-between gap-3 mb-4">
-                    <h3 class="text-xl font-semibold">${nice}</h3>
-                    <button id="changeDate" class="text-sm underline text-indigo-600 hover:text-indigo-700">Change Date</button>
-                </div>
+            formBox.innerHTML = 
+                '<div class="flex items-center justify-between gap-3 mb-4">' +
+                    '<h3 class="text-xl font-semibold">' + nice + '</h3>' +
+                    '<button id="changeDate" class="text-sm underline text-indigo-600 hover:text-indigo-700">Change Date</button>' +
+                '</div>' +
+                '<form id="bookingForm" class="grid md:grid-cols-2 gap-4">' +
+                    '<div>' +
+                        '<label class="block text-sm font-medium">Full name</label>' +
+                        '<input required name="name" class="mt-1 w-full rounded-xl border px-3 py-2">' +
+                    '</div>' +
+                    '<div>' +
+                        '<label class="block text-sm font-medium">Email</label>' +
+                        '<input required type="email" name="email" class="mt-1 w-full rounded-xl border px-3 py-2">' +
+                    '</div>' +
+                    '<div>' +
+                        '<label class="block text-sm font-medium">Sponsorship Package</label>' +
+                        '<select required id="sponsorshipAmount" class="mt-1 w-full rounded-xl border px-3 py-2">' +
+                            '<option value="">Select a package</option>' +
+                            '<option value="200. 00">Standard (£200)</option>' +
+                            '<option value="325.00">Premium (£325)</option>' +
+                            '<option value="To be discussed with Chantel">Special (Contact Office)</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div>' +
+                        '<label class="block text-sm font-medium">Synagogue</label>' +
+                        '<input disabled value="Hadley Wood Shul" class="mt-1 w-full rounded-xl border px-3 py-2 bg-gray-100">' +
+                    '</div>' +
+                    '<div class="md:col-span-2">' +
+                        '<label class="block text-sm font-medium">Dedication (optional)</label>' +
+                        '<input name="dedication" class="mt-1 w-full rounded-xl border px-3 py-2">' +
+                    '</div>' +
+                    '<div class="md:col-span-2 flex items-center gap-3">' +
+                        '<button id="reserveBtn" type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Reserve date</button>' +
+                        '<span id="savedMsg" class="text-sm hidden"></span>' +
+                    '</div>' +
+                '</form>';
 
-                <form id="bookingForm" class="grid md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium">Full name</label>
-                        <input required name="name" class="mt-1 w-full rounded-xl border px-3 py-2">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium">Email</label>
-                        <input required type="email" name="email" class="mt-1 w-full rounded-xl border px-3 py-2">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium">Sponsorship Package</label>
-                        <select required id="sponsorshipAmount" class="mt-1 w-full rounded-xl border px-3 py-2">
-                            <option value="">Select a package</option>
-                            <option value="200. 00">Standard (£200)</option>
-                            <option value="325.00">Premium (£325)</option>
-                            <option value="To be discussed with Chantel">Special (Contact Office)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium">Synagogue</label>
-                        <input disabled value="Hadley Wood Shul" class="mt-1 w-full rounded-xl border px-3 py-2 bg-gray-100">
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium">Dedication (optional)</label>
-                        <input name="dedication" class="mt-1 w-full rounded-xl border px-3 py-2">
-                    </div>
-
-                    <div class="md:col-span-2 flex items-center gap-3">
-                        <button id="reserveBtn" type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 text-white">Reserve date</button>
-                        <span id="savedMsg" class="text-sm hidden"></span>
-                    </div>
-                </form>
-            `;
-
-            const emailInput = formBox.querySelector('input[name="email"]');
+            var emailInput = formBox.querySelector('input[name="email"]');
             if (emailInput && userEmail) emailInput.value = userEmail;
 
-            document.getElementById("changeDate").onclick = () => {
+            document.getElementById("changeDate").onclick = function() {
                 selected = null;
                 renderForm();
                 renderCalendar();
             };
 
-            document.getElementById("bookingForm").onsubmit = async e => {
+            document.getElementById("bookingForm").onsubmit = async function(e) {
                 e.preventDefault();
 
-                const fd = new FormData(e.target);
-                const amount = document.getElementById("sponsorshipAmount").value;
-                if (!amount) return alert("Please select a sponsorship package.");
+                var fd = new FormData(e.target);
+                var amount = document.getElementById("sponsorshipAmount").value;
+                if (!amount) {
+                    alert("Please select a sponsorship package.");
+                    return;
+                }
 
-                const btn = document.getElementById("reserveBtn");
+                var btn = document.getElementById("reserveBtn");
                 btn.disabled = true;
                 btn.textContent = "Reserving...";
 
-                const payload = {
+                var payload = {
                     date: iso,
-                    name: fd.get("name"). trim(),
+                    name: fd. get("name"). trim(),
                     email: fd.get("email").toLowerCase(). trim(),
                     amount: amount === "To be discussed with Chantel" ?  amount : parseFloat(amount). toFixed(2),
-                    dedication: fd.get("dedication").trim(),
+                    dedication: fd.get("dedication"). trim(),
                     synagogue: "Hadley Wood Shul"
                 };
 
                 userEmail = payload.email;
                 localStorage.setItem("kiddushUserEmail", userEmail);
 
-                const msg = document.getElementById("savedMsg");
-                msg. textContent = "Saving... ";
+                var msg = document.getElementById("savedMsg");
+                msg.textContent = "Saving... ";
                 msg. classList.remove("hidden");
 
                 try {
-                    const res = await fetch(endpoint(), {
+                    var res = await fetch(endpoint(), {
                         method: "POST",
                         headers: { "Content-Type": "text/plain" },
                         body: JSON.stringify(payload)
                     });
 
-                    const text = await res.text();
+                    var text = await res.text();
                     console.log("=== RAW SERVER RESPONSE ===", text);
 
-                    let json = null;
-                    try { json = JSON.parse(text); } catch (e) {
-                        console.error("Parse failed:", e, "Raw:", text);
+                    var json = null;
+                    try { json = JSON.parse(text); } catch (parseErr) {
+                        console. error("Parse failed:", parseErr, "Raw:", text);
                     }
 
-                    if (! res.ok) throw new Error("HTTP " + res.status + (json?. message ? ": " + json.message : ""));
+                    if (! res.ok) throw new Error("HTTP " + res.status + (json && json.message ? ": " + json. message : ""));
                     if (json && json.status === "error") throw new Error(json.message || "Server error");
 
                     msg.textContent = "Booking confirmed!";
                     msg.classList.remove("hidden");
                     msg.classList.add("text-green-600");
 
-                    formBox.innerHTML =
-                        `<div class="p-6 rounded-xl bg-green-50 text-green-800 text-center">Booking for <strong>${nice}</strong> reserved successfully!</div>`;
+                    formBox.innerHTML = '<div class="p-6 rounded-xl bg-green-50 text-green-800 text-center">Booking for <strong>' + nice + '</strong> reserved successfully!</div>';
 
                     selected = null;
                     localStorage.removeItem("kiddushBookings");
@@ -405,17 +390,17 @@
                     msg.classList.add("text-red-600");
 
                     btn.disabled = false;
-                    btn. textContent = "Reserve date";
+                    btn.textContent = "Reserve date";
                 }
             };
         }
 
-        document.getElementById("prevBtn").onclick = () => {
-            viewDate.setMonth(viewDate. getMonth() - 1);
+        document.getElementById("prevBtn").onclick = function() {
+            viewDate. setMonth(viewDate.getMonth() - 1);
             renderCalendar();
         };
 
-        document.getElementById("nextBtn").onclick = () => {
+        document.getElementById("nextBtn").onclick = function() {
             viewDate.setMonth(viewDate.getMonth() + 1);
             renderCalendar();
         };
