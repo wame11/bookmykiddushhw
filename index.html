@@ -122,6 +122,44 @@
         </p>
     </section>
 
+    <!-- FAQ Chat Widget (added) -->
+    <div id="faqChatRoot" class="fixed bottom-4 right-4 z-50 text-sm">
+        <button
+            id="faqChatToggle"
+            class="px-4 py-2 rounded-full shadow-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 focus:outline-none"
+        >
+            Help / FAQ
+        </button>
+
+        <div
+            id="faqChatPanel"
+            class="hidden mt-3 w-80 max-w-[90vw] rounded-2xl shadow-2xl border bg-white card flex flex-col overflow-hidden"
+        >
+            <div class="px-4 py-3 border-b flex items-center justify-between">
+                <span class="font-semibold text-gray-900">Kiddush FAQ</span>
+                <button
+                    id="faqChatClose"
+                    class="text-xs text-gray-500 hover:text-gray-700"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <div
+                id="faqChatMessages"
+                class="px-4 py-3 space-y-2 max-h-64 overflow-y-auto text-gray-800"
+            >
+                <div class="text-xs text-gray-500">
+                    Tap a question below to see the answer.
+                </div>
+            </div>
+
+            <div class="border-t bg-gray-50 px-3 py-2">
+                <div id="faqChatQuestions" class="flex flex-wrap gap-2 text-xs"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const USE_PROXY = false;
         const PROXY_URL = "https://corsproxy.io/? ";
@@ -412,6 +450,97 @@
         };
 
         fetchBookings();
+
+        // ===== Simple FAQ "chat" widget with pre-written Q&A and typing dots (added) =====
+        const FAQ_ITEMS = [
+            {
+                q: "How do I book a Kiddush?",
+                a: "Scroll down to the calendar, choose an available date, select your preferred sponsorship package, and complete the booking form."
+            },
+            {
+                q: "What about Bar/Bat Mitzvahs?",
+                a: "By all means book your kiddush but please be aware there is a separate process for booking bar/bat mizvah celebrations through the office."
+            },
+            {
+                q: "Can I cancel or change my booking?",
+                a: "Yes — please contact the office for help with cancellations or changes."
+            },
+            {
+                q: "Who can see the amount I've sponsored?",
+                a: "Only the Shul office can see the amount you have sponsored."
+            },
+            {
+                q: "What if a date says 'Booked'?",
+                a: "That means it's already taken — please select another available Shabbat or Festival date."
+            }
+        ];
+
+        function initFaqChat() {
+            var root = document.getElementById("faqChatRoot");
+            if (!root) return;
+
+            var panel = document.getElementById("faqChatPanel");
+            var toggleBtn = document.getElementById("faqChatToggle");
+            var closeBtn = document.getElementById("faqChatClose");
+            var questionsBox = document.getElementById("faqChatQuestions");
+            var messagesBox = document.getElementById("faqChatMessages");
+
+            questionsBox.innerHTML = "";
+            FAQ_ITEMS.forEach(function(item) {
+                var btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "px-3 py-1 rounded-full border bg-white hover:bg-indigo-50 text-gray-800";
+                btn.textContent = item.q;
+                btn.onclick = function() {
+                    addFaqMessage(item.q, item.a, messagesBox);
+                };
+                questionsBox.appendChild(btn);
+            });
+
+            toggleBtn.onclick = function() {
+                panel.classList.toggle("hidden");
+            };
+            closeBtn.onclick = function() {
+                panel.classList.add("hidden");
+            };
+        }
+
+        function addFaqMessage(question, answer, messagesBox) {
+            var userBubble = document.createElement("div");
+            userBubble.className = "flex justify-end mb-1";
+            userBubble.innerHTML =
+                '<div class="inline-block max-w-[80%] rounded-2xl px-3 py-2 bg-indigo-600 text-white text-xs">' +
+                question +
+                "</div>";
+            messagesBox.appendChild(userBubble);
+
+            var typingBubble = document.createElement("div");
+            typingBubble.className = "flex justify-start mb-2";
+            typingBubble.innerHTML =
+                '<div class="inline-block max-w-[80%] rounded-2xl px-3 py-2 bg-gray-100 text-gray-500 text-xs">' +
+                    '<span class="inline-block">...</span>' +
+                "</div>";
+            messagesBox.appendChild(typingBubble);
+
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+
+            setTimeout(function() {
+                if (typingBubble.parentNode === messagesBox) {
+                    messagesBox.removeChild(typingBubble);
+                }
+
+                var botBubble = document.createElement("div");
+                botBubble.className = "flex justify-start mb-2";
+                botBubble.innerHTML =
+                    '<div class="inline-block max-w-[80%] rounded-2xl px-3 py-2 bg-gray-100 text-gray-800 text-xs">' +
+                    answer +
+                    "</div>";
+                messagesBox.appendChild(botBubble);
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+            }, 5000);
+        }
+
+        initFaqChat();
     </script>
 </body>
 </html>
