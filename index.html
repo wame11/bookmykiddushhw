@@ -10,6 +10,30 @@
         . card { background: rgba(255,255,255,0.85); backdrop-filter: saturate(1.2) blur(2px); -webkit-backdrop-filter: saturate(1.2) blur(2px); }
         .chip { font-size: 10px; padding: . 125rem .5rem; border-radius: 9999px; }
         #loading { display: none; text-align: center; padding: 1rem; color: #555; }
+
+        /* typing dots animation for chat bot */
+        .typing-dots {
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 3px;
+        }
+        .typing-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 9999px;
+            background: #6b7280;
+            animation: typingBounce 0.6s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-3px); }
+        }
     </style>
 </head>
 
@@ -122,13 +146,13 @@
         </p>
     </section>
 
-    <!-- FAQ Chat Widget (added) -->
+    <!-- FAQ Chat Widget -->
     <div id="faqChatRoot" class="fixed bottom-4 right-4 z-50 text-sm">
         <button
             id="faqChatToggle"
             class="px-4 py-2 rounded-full shadow-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 focus:outline-none"
         >
-            Help / FAQ
+            chat bot
         </button>
 
         <div
@@ -451,7 +475,7 @@
 
         fetchBookings();
 
-        // ===== Simple FAQ "chat" widget with pre-written Q&A and typing dots (added) =====
+        // ===== Simple FAQ "chat" widget with pre-written Q&A and typing dots =====
         const FAQ_ITEMS = [
             {
                 q: "How do I book a Kiddush?",
@@ -518,7 +542,11 @@
             typingBubble.className = "flex justify-start mb-2";
             typingBubble.innerHTML =
                 '<div class="inline-block max-w-[80%] rounded-2xl px-3 py-2 bg-gray-100 text-gray-500 text-xs">' +
-                    '<span class="inline-block">...</span>' +
+                    '<span class="typing-dots">' +
+                        '<span class="typing-dot"></span>' +
+                        '<span class="typing-dot"></span>' +
+                        '<span class="typing-dot"></span>' +
+                    '</span>' +
                 "</div>";
             messagesBox.appendChild(typingBubble);
 
@@ -537,7 +565,7 @@
                     "</div>";
                 messagesBox.appendChild(botBubble);
                 messagesBox.scrollTop = messagesBox.scrollHeight;
-            }, 5000);
+            }, 2000);
         }
 
         initFaqChat();
