@@ -1,70 +1,51 @@
-<! DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Book My Kiddush — Hadley Wood Shul</title>
+    <title>Read My Haftorah — Hadley Wood Shul</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: linear-gradient(to bottom,#eef2ff,white); }
-        . card { background: rgba(255,255,255,0.85); backdrop-filter: saturate(1.2) blur(2px); -webkit-backdrop-filter: saturate(1.2) blur(2px); }
-        .chip { font-size: 10px; padding: . 125rem .5rem; border-radius: 9999px; }
+        .card { background: rgba(255,255,255,0.85); backdrop-filter: saturate(1.2) blur(2px); -webkit-backdrop-filter: saturate(1.2) blur(2px); }
+        .chip { font-size: 10px; padding: .125rem .5rem; border-radius: 9999px; }
         #loading { display: none; text-align: center; padding: 1rem; color: #555; }
-
-        /* typing dots animation for chat bot */
-        .typing-dots {
-            display: inline-flex;
-            align-items: flex-end;
-            gap: 3px;
-        }
-        .typing-dot {
-            width: 4px;
-            height: 4px;
-            border-radius: 9999px;
-            background: #6b7280;
-            animation: typingBounce 0.6s infinite ease-in-out;
-        }
-        .typing-dot:nth-child(2) {
-            animation-delay: 0.15s;
-        }
-        .typing-dot:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-        @keyframes typingBounce {
-            0%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-3px); }
-        }
+        .typing-dots { display: inline-flex; align-items: flex-end; gap: 3px; }
+        .typing-dot { width: 4px; height: 4px; border-radius: 9999px; background: #6b7280; animation: typingBounce 0.6s infinite ease-in-out; }
+        .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes typingBounce { 0%,80%,100%{transform:translateY(0);} 40%{transform:translateY(-3px);} }
     </style>
 </head>
 
 <body class="text-gray-900">
     <header class="sticky top-0 z-40 bg-white bg-opacity-70 backdrop-filter backdrop-blur border-b">
         <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="#home" class="font-black tracking-tight text-xl">Book My Kiddush</a>
+            <a href="#home" class="font-black tracking-tight text-xl">Read My Haftorah</a>
             <nav class="hidden md:flex gap-6 text-sm font-medium">
                 <a href="#faq" class="hover:text-indigo-600">Key Information</a>
+                <a href="#lookup" class="hover:text-indigo-600">Find My Haftorah</a>
                 <a href="#calendar" class="hover:text-indigo-600">Calendar</a>
                 <a href="#contact" class="hover:text-indigo-600">Contact</a>
             </nav>
-            <a href="#calendar" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">Sponsor</a>
+            <a href="#calendar" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">Reserve</a>
         </div>
     </header>
 
     <main id="home" class="relative overflow-hidden">
         <section class="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
             <div>
-                <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">Reserve your Kiddush date</h1>
+                <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">Reserve your Haftorah date</h1>
                 <p class="mt-4 text-lg text-gray-700">
-                    Select an available <strong>Shabbat</strong> or <strong>Festival</strong> date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>. 
+                    Select an available <strong>Shabbat</strong> or <strong>Festival</strong> date to read the Haftorah at <strong>Hadley Wood Shul</strong>.
                 </p>
                 <div class="mt-6 flex flex-wrap gap-3">
                     <a href="#calendar" class="px-5 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Open Calendar</a>
                 </div>
             </div>
-
             <div class="p-4">
                 <div class="aspect-video rounded-2xl border shadow-lg bg-white grid place-items-center">
-                    <p class="text-gray-600">Book your Kiddush date quickly and easily. </p>
+                    <p class="text-gray-600">Reserve your Haftorah quickly and easily.</p>
                 </div>
             </div>
         </section>
@@ -73,44 +54,49 @@
     <section id="faq" class="max-w-6xl mx-auto px-4 py-16 border-t">
         <h2 class="text-2xl md:text-3xl font-bold mb-6">Key Information</h2>
         <div class="space-y-6 text-gray-700">
-
             <div>
-                <h3 class="font-semibold text-lg text-indigo-700">How do I book a Kiddush? </h3>
-                <p class="mt-1">Scroll down to the calendar, choose an available date, select your preferred sponsorship package, and complete the booking form.</p>
+                <h3 class="font-semibold text-lg text-indigo-700">How do I reserve a Haftorah?</h3>
+                <p class="mt-1">Scroll down to the calendar, choose an available date, and complete the reservation form.</p>
             </div>
-
             <div>
-                <h3 class="font-semibold text-lg text-indigo-700">What about Bar/Bat Mitzvahs?</h3>
-                <p class="mt-1">By all means book your kiddush but please be aware there is a separate process for booking bar/bat mizvah celebrations through the office.</p>
+                <h3 class="font-semibold text-lg text-indigo-700">Bar/Bat Mitzvahs?</h3>
+                <p class="mt-1">You’re welcome to reserve, but note there is a separate Bar/Bat Mitzvah process through the office.</p>
             </div>
-
             <div>
-                <h3 class="font-semibold text-lg text-indigo-700">Can I cancel or change my booking? </h3>
-                <p class="mt-1">Yes — please contact the office at <a href="mailto:office@hwjc.org. uk" class="text-indigo-600 hover:underline">office@hwjc.org. uk</a> for help with cancellations or changes.</p>
+                <h3 class="font-semibold text-lg text-indigo-700">Can I change my reservation?</h3>
+                <p class="mt-1">Yes — please reach out via the Haftorah WhatsApp group.</p>
             </div>
-
             <div>
-                <h3 class="font-semibold text-lg text-indigo-700">Who can see the amount I've sponsored?</h3>
-                <p class="mt-1">Only the Shul office. </p>
+                <h3 class="font-semibold text-lg text-indigo-700">Who can see my details?</h3>
+                <p class="mt-1">Only the organisers.</p>
             </div>
-
             <div>
-                <h3 class="font-semibold text-lg text-indigo-700">What if a date says "Booked"?</h3>
-                <p class="mt-1">That means it's already taken — please select another available Shabbat or Festival date.</p>
+                <h3 class="font-semibold text-lg text-indigo-700">What if a date says “Reserved”?</h3>
+                <p class="mt-1">It’s taken — please choose another Shabbat or Festival date.</p>
             </div>
+        </div>
+    </section>
 
+    <section id="lookup" class="max-w-6xl mx-auto px-4 py-16 border-t">
+        <h2 class="text-2xl md:text-3xl font-bold mb-3">Find your Haftorah date</h2>
+        <p class="text-gray-700 mb-4">Type the Parasha/Haftorah name (we’ll tolerate minor spelling mistakes). Covers now through 2035.</p>
+        <div class="card p-4 rounded-2xl border shadow-sm space-y-4">
+            <div class="flex flex-col md:flex-row gap-3">
+                <input id="lookupInput" class="w-full rounded-xl border px-3 py-2" placeholder="e.g. Ki Tavo, Noach, Yitro" />
+                <button id="lookupBtn" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Find dates</button>
+            </div>
+            <div id="lookupResults" class="text-sm text-gray-800"></div>
         </div>
     </section>
 
     <section id="calendar" class="max-w-6xl mx-auto px-4 py-16 border-t">
         <h2 class="text-2xl md:text-3xl font-bold">Choose your date</h2>
-        <p class="mt-2 text-gray-700">Only Saturdays and preset Festivals are available. </p>
+        <p class="mt-2 text-gray-700">Saturdays and Festival days are reservable.</p>
 
         <div id="loading" class="mt-4">Loading calendar...</div>
 
         <div class="mt-6 grid md:grid-cols-2 gap-8 items-start">
             <div class="card p-4 rounded-2xl border shadow-sm">
-
                 <div class="flex items-center justify-between mb-4">
                     <button id="prevBtn" class="px-4 py-2 rounded-lg border hover:bg-gray-50">Prev</button>
                     <h3 id="monthLabel" class="text-lg font-semibold"></h3>
@@ -126,58 +112,40 @@
 
             <div class="space-y-6">
                 <div id="formBox" class="card p-6 rounded-2xl border shadow-sm text-sm text-gray-700">
-                    <p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>
+                    <p>Select an available date to reserve the Haftorah at <strong>Hadley Wood Shul</strong>.</p>
                 </div>
             </div>
         </div>
+
+        <p class="mt-4 text-xs text-gray-600">* Festival dates are only updated through the end of 2026.</p>
     </section>
 
     <section id="contact" class="max-w-6xl mx-auto px-4 py-16 border-t">
         <h2 class="text-2xl md:text-3xl font-bold mb-4">Contact</h2>
         <p class="text-gray-700 text-lg">
-            For any questions or assistance, please contact
-            <a href="mailto:office@hwjc.org. uk" class="text-indigo-600 hover:underline font-medium">office@hwjc.org.uk</a>.
+            For questions or changes, please use the <strong>Haftorah List WhatsApp Group</strong>.
         </p>
     </section>
 
     <section class="max-w-6xl mx-auto px-4 pb-16">
         <p class="text-gray-600 text-sm">
-            This website was built by <a href="https://webcoreuk.com" class="text-indigo-600 hover:underline">Webcore</a> (Ethan Ross) and help from Craig Greene
+            This website was built by <a href="https://webcoreuk.com" class="text-indigo-600 hover:underline">Webcore</a> (Ethan Ross) with help and inspiration from David Allen.
         </p>
     </section>
 
-    <!-- FAQ Chat Widget -->
     <div id="faqChatRoot" class="fixed bottom-4 right-4 z-50 text-sm">
-        <button
-            id="faqChatToggle"
-            class="px-4 py-2 rounded-full shadow-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 focus:outline-none"
-        >
+        <button id="faqChatToggle" class="px-4 py-2 rounded-full shadow-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 focus:outline-none">
             Chat bot
         </button>
 
-        <div
-            id="faqChatPanel"
-            class="hidden mt-3 w-80 max-w-[90vw] rounded-2xl shadow-2xl border bg-white card flex flex-col overflow-hidden"
-        >
+        <div id="faqChatPanel" class="hidden mt-3 w-80 max-w-[90vw] rounded-2xl shadow-2xl border bg-white card flex flex-col overflow-hidden">
             <div class="px-4 py-3 border-b flex items-center justify-between">
-                <span class="font-semibold text-gray-900">Kiddush FAQ</span>
-                <button
-                    id="faqChatClose"
-                    class="text-xs text-gray-500 hover:text-gray-700"
-                >
-                    ✕
-                </button>
+                <span class="font-semibold text-gray-900">Haftorah FAQ</span>
+                <button id="faqChatClose" class="text-xs text-gray-500 hover:text-gray-700">✕</button>
             </div>
-
-            <div
-                id="faqChatMessages"
-                class="px-4 py-3 space-y-2 max-h-64 overflow-y-auto text-gray-800"
-            >
-                <div class="text-xs text-gray-500">
-                    Tap a question below to see the answer.
-                </div>
+            <div id="faqChatMessages" class="px-4 py-3 space-y-2 max-h-64 overflow-y-auto text-gray-800">
+                <div class="text-xs text-gray-500">Tap a question below to see the answer.</div>
             </div>
-
             <div class="border-t bg-gray-50 px-3 py-2">
                 <div id="faqChatQuestions" class="flex flex-wrap gap-2 text-xs"></div>
             </div>
@@ -186,389 +154,350 @@
 
     <script>
         const USE_PROXY = false;
-        const PROXY_URL = "https://corsproxy.io/? ";
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGSbPyBZdddJNl6PzUHMsI2W-NoUDxAfGyQ-lKKOMcVnIiGtXiLfzp8YFM3IHpDZWQ/exec";
+        const PROXY_URL = "https://corsproxy.io/?";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby8Y5GCvJ9b9FiPEFduEvngqyvvcfAa6iaxPzmutZNI2qQx8h2ZitDm2Yhhb63WCbGu/exec"; 
 
-        const FESTIVALS = new Set([
-            "2025-04-13","2025-04-14","2025-04-19","2025-04-20",
-            "2025-06-02","2025-06-03",
-            "2025-09-23","2025-09-24",
-            "2025-10-07","2025-10-08",
-            "2025-10-14","2025-10-15"
+        // Festivals with Haftorah (fallback) 2025–2026 only (your latest list)
+        const FESTIVALS_FALLBACK = new Set([
+            "2025-12-20",
+            "2026-02-14","2026-02-28","2026-03-07","2026-03-14","2026-03-28",
+            "2026-04-02","2026-04-03","2026-04-04","2026-04-08","2026-04-09",
+            "2026-05-22","2026-05-23",
+            "2026-07-18","2026-07-23","2026-07-25",
+            "2026-09-12","2026-09-13","2026-09-19","2026-09-21",
+            "2026-09-26","2026-09-27","2026-10-03","2026-10-04",
+            "2026-12-05","2026-12-12"
         ]);
 
-        var bookings = [];
-        var selected = null;
-        var viewDate = new Date();
-        var userEmail = localStorage.getItem("kiddushUserEmail") || null;
+        // Haftorah titles for those festival/special dates
+        const FESTIVAL_HAFTORAH = {
+            "2025-12-20": "Roni VeSimchi",
+            "2026-02-14": "Yehoash Melech Yehudah",
+            "2026-02-28": "Pokedti Es Asher Asah Amalek",
+            "2026-03-07": "VeZarakti Aleichem Mayim Tehorim",
+            "2026-03-14": "Ko Amar Hashem Elokim BaRishon",
+            "2026-03-28": "VeArevah LaHashem",
+            "2026-04-02": "VaYehoshua",
+            "2026-04-03": "VaYomer Yoshiyahu",
+            "2026-04-04": "HaAtzamos HaYevayshos",
+            "2026-04-08": "VaYedaber Dovid",
+            "2026-04-09": "Od HaYom",
+            "2026-05-22": "Ma’aseh Merkavah",
+            "2026-05-23": "Hashem BeHeichal Kodsho",
+            "2026-07-18": "Chazon Yeshayahu",
+            "2026-07-23": "Asof Asifeim",
+            "2026-07-25": "Nachamu Nachamu Ami",
+            "2026-09-12": "VaYehi HaYom",
+            "2026-09-13": "Ko Amar Hashem Motzo Chen",
+            "2026-09-19": "Shuvah Yisroel",
+            "2026-09-21": "Solu Solu (Shacharis) / Yonah (Mincha)",
+            "2026-09-26": "Hineh Yom Bo LaHashem",
+            "2026-09-27": "VaYikahalu El HaMelech",
+            "2026-10-03": "VaYehi KeChalos Shlomo",
+            "2026-10-04": "VaYehi Acharei Mos Moshe",
+            "2026-12-05": "Roni VeSimchi",
+            "2026-12-12": "VaYa’as Chiram"
+        };
 
-        var grid = document.getElementById("grid");
-        var monthLabel = document.getElementById("monthLabel");
-        var formBox = document.getElementById("formBox");
-        var loading = document.getElementById("loading");
+        // Range for Hebcal lookup
+        const HEB_START = "2025-01-01";
+        const HEB_END   = "2035-12-31"; 
 
-        function endpoint(path) {
-            var base = USE_PROXY ? (PROXY_URL + SCRIPT_URL) : SCRIPT_URL;
-            return path ? (base + path) : base;
-        }
+        let bookings = [];
+        let selected = null;
+        let viewDate = new Date();
+        let userPhone = localStorage.getItem("haftorahUserPhone") || "";
+        let hefIndex = [];          // parashat entries
+        let festivalSet = new Set(); // holiday dates from Hebcal
 
-        function makeDate(y, m, d) { 
-            return new Date(Date.UTC(y, m - 1, d, 12)); 
-        }
-        
-        function formatISO(y, m, d) { 
-            return y + "-" + String(m).padStart(2,"0") + "-" + String(d). padStart(2,"0"); 
-        }
+        const grid = document.getElementById("grid");
+        const monthLabel = document.getElementById("monthLabel");
+        const formBox = document.getElementById("formBox");
+        const loading = document.getElementById("loading");
 
-        function normaliseBackendDate(val) {
-            if (val === null || val === undefined) return "";
-            var s = String(val). trim();
-            if (! s) return "";
+        function endpoint(path){ const base = USE_PROXY ? (PROXY_URL + SCRIPT_URL) : SCRIPT_URL; return path ? (base + path) : base; }
+        function makeDate(y,m,d){ return new Date(Date.UTC(y,m-1,d,12)); }
+        function formatISO(y,m,d){ return y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0"); }
+
+        function normaliseBackendDate(val){
+            if (val===null||val===undefined) return "";
+            let s=String(val).trim();
+            if (!s) return "";
             if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-            if (s.length > 10 && s.charAt(10) === 'T') return s. substring(0, 10);
-            var cleaned = s.charAt(0) === "'" ? s.substring(1). trim() : s;
-            var uk = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-            if (uk) {
-                var day = Number(uk[1]), month = Number(uk[2]), year = Number(uk[3]);
+            if (s.length>10 && s.charAt(10)==="T") return s.substring(0,10);
+            let cleaned = s.charAt(0)==="'" ? s.substring(1).trim() : s;
+            let uk = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (uk){
+                let day=Number(uk[1]), month=Number(uk[2]), year=Number(uk[3]);
                 if (year && month>=1 && month<=12 && day>=1 && day<=31) return formatISO(year,month,day);
             }
-            var d = new Date(cleaned);
-            if (! isNaN(d)) return formatISO(d.getUTCFullYear(), d.getUTCMonth()+1, d. getUTCDate());
+            let d=new Date(cleaned);
+            if (!isNaN(d)) return formatISO(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate());
             return "";
         }
 
-        async function fetchBookings() {
-            loading.style.display = "block";
-            try {
-                var res = await fetch(endpoint());
-                if (!res.ok) throw new Error("HTTP " + res.status);
-                var data = await res.json();
-                bookings = Array.isArray(data)
-                    ? data. map(function(b) { return { date: normaliseBackendDate(b.date) }; }). filter(function(b) { return b. date; })
-                    : [];
-                localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
-            } catch(e) {
+        async function fetchHebcalRange(){
+            const url = `https://www.hebcal.com/hebcal?v=1&cfg=json&start=${HEB_START}&end=${HEB_END}&maj=on&min=on&mod=on&s=on`;
+            const res = await fetch(url);
+            const data = await res.json();
+            const items = data.items || [];
+            hefIndex = items
+                .filter(it => it.category === "parashat" || (it.title && it.title.toLowerCase().includes("parashat")))
+                .map(it => ({ date: it.date.substring(0,10), title: it.title.replace("Parashat ","").trim() }));
+            festivalSet = new Set(items
+                .filter(it => it.category === "holiday")
+                .map(it => it.date.substring(0,10)));
+        }
+
+        function findHaftorahByDate(iso){
+            if (FESTIVAL_HAFTORAH[iso]) return FESTIVAL_HAFTORAH[iso];
+            const hit = hefIndex.find(x => x.date === iso);
+            return hit ? hit.title : "Haftorah TBD";
+        }
+
+        function fuzzyMatch(term){
+            const t = term.trim().toLowerCase();
+            if (!t) return [];
+            return hefIndex
+                .filter(x => x.title.toLowerCase().includes(t) || leven(x.title.toLowerCase(), t) <= 2)
+                .slice(0,8);
+        }
+
+        function leven(a,b){
+            const al=a.length, bl=b.length;
+            if (al===0) return bl; if (bl===0) return al;
+            const dp=Array.from({length:al+1},()=>Array(bl+1).fill(0));
+            for(let i=0;i<=al;i++) dp[i][0]=i;
+            for(let j=0;j<=bl;j++) dp[0][j]=j;
+            for(let i=1;i<=al;i++){
+                for(let j=1;j<=bl;j++){
+                    const cost = a[i-1]===b[j-1]?0:1;
+                    dp[i][j]=Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
+                }
+            }
+            return dp[al][bl];
+        }
+
+        async function fetchBookings(){
+            loading.style.display="block";
+            try{
+                const res = await fetch(endpoint());
+                if(!res.ok) throw new Error("HTTP "+res.status);
+                const data = await res.json();
+                bookings = Array.isArray(data) ? data.map(b=>({date: normaliseBackendDate(b.date)})).filter(b=>b.date) : [];
+                localStorage.setItem("haftorahBookings", JSON.stringify(bookings));
+            }catch(e){
                 console.error("Fetch failed:", e);
-                var saved = localStorage.getItem("kiddushBookings");
+                const saved = localStorage.getItem("haftorahBookings");
                 bookings = saved ? JSON.parse(saved) : [];
             }
-
-            loading.style.display = "none";
+            loading.style.display="none";
             renderCalendar();
             if (selected) renderForm();
         }
 
-        function renderCalendar() {
-            monthLabel.textContent = viewDate.toLocaleString("en-GB", { month: "long", year: "numeric" });
-            grid.innerHTML = "";
+        function renderCalendar(){
+            monthLabel.textContent = viewDate.toLocaleString("en-GB",{month:"long",year:"numeric"});
+            grid.innerHTML="";
+            const y=viewDate.getFullYear();
+            const m=viewDate.getMonth()+1;
+            const todayMid = makeDate(new Date().getFullYear(), new Date().getMonth()+1, new Date().getDate());
 
-            var y = viewDate.getFullYear();
-            var m = viewDate.getMonth() + 1;
-            var todayMid = makeDate(new Date().getFullYear(), new Date().getMonth()+1, new Date().getDate());
+            const days=getCalendarDays(y,m);
+            for (let d of days){
+                const cy=d.getUTCFullYear(), cm=d.getUTCMonth()+1, cd=d.getUTCDate();
+                const iso=formatISO(cy,cm,cd);
+                const thisMonth=cm===m;
+                const taken=bookings.some(b=>b.date===iso);
+                const isPast=d<todayMid;
+                const isFestival = FESTIVALS_FALLBACK.has(iso);
+                const isSat = d.getUTCDay()===6;
+                const selectable=(isSat || isFestival)&&thisMonth&&!taken&&!isPast;
 
-            var days = getCalendarDays(y, m);
-            for (var i = 0; i < days.length; i++) {
-                var d = days[i];
-                var cy = d.getUTCFullYear(), cm = d.getUTCMonth()+1, cd = d.getUTCDate();
-                var iso = formatISO(cy, cm, cd);
-                var thisMonth = cm === m;
-                var taken = false;
-                for (var j = 0; j < bookings.length; j++) {
-                    if (bookings[j].date === iso) {
-                        taken = true;
-                        break;
-                    }
+                const cell=document.createElement("button");
+                cell.disabled=!selectable;
+                cell.className="aspect-square rounded-xl border flex flex-col items-center justify-center gap-1 transition "+
+                    (selectable?"bg-white hover:bg-indigo-50 cursor-pointer":"bg-gray-50 text-gray-400");
+
+                let chipHtml="";
+                if (taken) chipHtml='<span class="chip bg-red-100 text-red-700">Reserved</span>';
+                else if (selectable && isFestival) chipHtml='<span class="chip bg-blue-100 text-blue-700">Festival</span>';
+                else if (selectable) chipHtml='<span class="chip bg-green-100 text-green-700">Available</span>';
+                else if ((isSat||isFestival)&&!thisMonth) chipHtml='<span class="chip bg-yellow-100 text-yellow-700">Other Month</span>';
+
+                cell.innerHTML='<span class="text-base font-semibold '+(thisMonth?"text-gray-900":"text-gray-400")+'">'+cd+'</span>'+chipHtml;
+
+                if (selectable){
+                    cell.onclick=()=>{ selected=d; renderForm(); renderCalendar(); };
                 }
-                var isPast = d < todayMid;
-                var selectable = isSaturdayOrFestival(d) && thisMonth && !taken && !isPast;
-
-                var cell = document.createElement("button");
-                cell. disabled = ! selectable;
-                cell.className = "aspect-square rounded-xl border flex flex-col items-center justify-center gap-1 transition " +
-                    (selectable ? "bg-white hover:bg-indigo-50 cursor-pointer" : "bg-gray-50 text-gray-400");
-
-                var chipHtml = "";
-                if (taken) {
-                    chipHtml = '<span class="chip bg-red-100 text-red-700">Booked</span>';
-                } else if (selectable) {
-                    chipHtml = '<span class="chip bg-green-100 text-green-700">Available</span>';
-                } else if (isSaturdayOrFestival(d) && !thisMonth) {
-                    chipHtml = '<span class="chip bg-yellow-100 text-yellow-700">Other Month</span>';
+                if (selected && formatISO(selected.getUTCFullYear(), selected.getUTCMonth()+1, selected.getUTCDate())===iso){
+                    cell.classList.add("ring-4","ring-indigo-400","ring-offset-2");
                 }
-
-                cell. innerHTML = '<span class="text-base font-semibold ' + (thisMonth ? "text-gray-900" : "text-gray-400") + '">' + cd + '</span>' + chipHtml;
-
-                if (selectable) {
-                    (function(dateObj) {
-                        cell.onclick = function() {
-                            selected = dateObj;
-                            renderForm();
-                            renderCalendar();
-                        };
-                    })(d);
-                }
-
-                if (selected && formatISO(selected.getUTCFullYear(), selected.getUTCMonth()+1, selected.getUTCDate()) === iso) {
-                    cell.classList. add("ring-4", "ring-indigo-400", "ring-offset-2");
-                }
-
                 grid.appendChild(cell);
             }
         }
 
-        function getCalendarDays(year, month) {
-            var first = makeDate(year, month, 1);
-            var startOffset = (first.getUTCDay() + 6) % 7;
-            var startDay = 1 - startOffset;
-            var days = [];
-            for (var i = 0; i < 42; i++) {
-                days.push(new Date(Date.UTC(year, month - 1, startDay + i, 12)));
+        function getCalendarDays(year,month){
+            const first=makeDate(year,month,1);
+            const startOffset=(first.getUTCDay()+6)%7;
+            const startDay=1-startOffset;
+            const days=[];
+            for(let i=0;i<42;i++){
+                days.push(new Date(Date.UTC(year,month-1,startDay+i,12)));
             }
             return days;
         }
 
-        function isSaturdayOrFestival(d) {
-            return d. getUTCDay() === 6 || FESTIVALS.has(formatISO(d. getUTCFullYear(), d.getUTCMonth()+1, d. getUTCDate()));
-        }
-
-        function renderForm() {
-            if (! selected) {
-                formBox. innerHTML = '<p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>';
+        function renderForm(){
+            if (!selected){
+                formBox.innerHTML='<p>Select an available date to reserve the Haftorah at <strong>Hadley Wood Shul</strong>.</p>';
                 return;
             }
+            const iso = formatISO(selected.getUTCFullYear(), selected.getUTCMonth()+1, selected.getUTCDate());
+            const nice = selected.toLocaleDateString("en-GB",{timeZone:"Europe/London",weekday:"long",day:"numeric",month:"long",year:"numeric"});
+            const haftorah = findHaftorahByDate(iso);
 
-            var iso = formatISO(selected.getUTCFullYear(), selected.getUTCMonth() + 1, selected.getUTCDate());
+            formBox.innerHTML =
+                '<div class="flex itemscenter justify-between gap-3 mb-4">'+
+                    '<h3 class="text-xl font-semibold">'+nice+'</h3>'+
+                    '<button id="changeDate" class="text-sm underline text-indigo-600 hover:text-indigo-700">Change Date</button>'+
+                '</div>'+
+                '<form id="bookingForm" class="grid md:grid-cols-2 gap-4">'+
+                    '<div>'+
+                        '<label class="block text-sm font-medium">Full name</label>'+
+                        '<input required name="name" class="mt-1 w-full rounded-xl border px-3 py-2">'+
+                    '</div>'+
+                    '<div>'+
+                        '<label class="block text-sm font-medium">Mobile number</label>'+
+                        '<input required name="phone" type="tel" placeholder="+44..." class="mt-1 w-full rounded-xl border px-3 py-2">'+
+                    '</div>'+
+                    '<div class="md:col-span-2">'+
+                        '<label class="block text-sm font-medium">Notes / Dedication</label>'+
+                        `<input name="dedication" class="mt-1 w-full rounded-xl border px-3 py-2" value="Haftorah: ${haftorah}">`+
+                    '</div>'+
+                    '<div class="md:col-span-2 flex items-center gap-3">'+
+                        '<button id="reserveBtn" type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Reserve date</button>'+
+                        '<span id="savedMsg" class="text-sm hidden"></span>'+
+                    '</div>'+
+                '</form>'+
+                `<div class="mt-2 text-xs text-gray-600">Haftorah for this date: <strong>${haftorah}</strong></div>`;
 
-            var nice = selected.toLocaleDateString("en-GB", {
-                timeZone: "Europe/London",
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-            });
+            const phoneInput=formBox.querySelector('input[name="phone"]');
+            if (phoneInput && userPhone) phoneInput.value=userPhone;
 
-            formBox.innerHTML = 
-                '<div class="flex items-center justify-between gap-3 mb-4">' +
-                    '<h3 class="text-xl font-semibold">' + nice + '</h3>' +
-                    '<button id="changeDate" class="text-sm underline text-indigo-600 hover:text-indigo-700">Change Date</button>' +
-                '</div>' +
-                '<form id="bookingForm" class="grid md:grid-cols-2 gap-4">' +
-                    '<div>' +
-                        '<label class="block text-sm font-medium">Full name</label>' +
-                        '<input required name="name" class="mt-1 w-full rounded-xl border px-3 py-2">' +
-                    '</div>' +
-                    '<div>' +
-                        '<label class="block text-sm font-medium">Email</label>' +
-                        '<input required type="email" name="email" class="mt-1 w-full rounded-xl border px-3 py-2">' +
-                    '</div>' +
-                    '<div>' +
-                        '<label class="block text-sm font-medium">Sponsorship Package</label>' +
-                        '<select required id="sponsorshipAmount" class="mt-1 w-full rounded-xl border px-3 py-2">' +
-                            '<option value="">Select a package</option>' +
-                            '<option value="200. 00">Standard (£200)</option>' +
-                            '<option value="325.00">Premium (£325)</option>' +
-                            '<option value="To be discussed with Chantel">Special (Contact Office)</option>' +
-                        '</select>' +
-                    '</div>' +
-                    '<div>' +
-                        '<label class="block text-sm font-medium">Synagogue</label>' +
-                        '<input disabled value="Hadley Wood Shul" class="mt-1 w-full rounded-xl border px-3 py-2 bg-gray-100">' +
-                    '</div>' +
-                    '<div class="md:col-span-2">' +
-                        '<label class="block text-sm font-medium">Dedication/Haftorah Request (optional)</label>' +
-                        '<input name="dedication" class="mt-1 w-full rounded-xl border px-3 py-2">' +
-                    '</div>' +
-                    '<div class="md:col-span-2 flex items-center gap-3">' +
-                        '<button id="reserveBtn" type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Reserve date</button>' +
-                        '<span id="savedMsg" class="text-sm hidden"></span>' +
-                    '</div>' +
-                '</form>';
+            document.getElementById("changeDate").onclick=()=>{ selected=null; renderForm(); renderCalendar(); };
 
-            var emailInput = formBox.querySelector('input[name="email"]');
-            if (emailInput && userEmail) emailInput.value = userEmail;
-
-            document.getElementById("changeDate").onclick = function() {
-                selected = null;
-                renderForm();
-                renderCalendar();
-            };
-
-            document.getElementById("bookingForm").onsubmit = async function(e) {
+            document.getElementById("bookingForm").onsubmit=async (e)=>{
                 e.preventDefault();
-
-                var fd = new FormData(e.target);
-                var amount = document.getElementById("sponsorshipAmount").value;
-                if (!amount) {
-                    alert("Please select a sponsorship package.");
-                    return;
-                }
-
-                var btn = document.getElementById("reserveBtn");
-                btn.disabled = true;
-                btn.textContent = "Reserving...";
-
-                var payload = {
+                const fd=new FormData(e.target);
+                const payload={
                     date: iso,
-                    name: fd. get("name"). trim(),
-                    email: fd.get("email").toLowerCase(). trim(),
-                    amount: amount === "To be discussed with Chantel" ?  amount : parseFloat(amount). toFixed(2),
-                    dedication: fd.get("dedication"). trim(),
-                    synagogue: "Hadley Wood Shul"
+                    name: fd.get("name").trim(),
+                    phone: fd.get("phone").trim(),
+                    dedication: fd.get("dedication").trim(),
+                    haftorah: haftorah
                 };
+                if (!payload.phone){ alert("Please enter a mobile number."); return; }
 
-                userEmail = payload.email;
-                localStorage.setItem("kiddushUserEmail", userEmail);
+                userPhone = payload.phone;
+                localStorage.setItem("haftorahUserPhone", userPhone);
 
-                var msg = document.getElementById("savedMsg");
-                msg.textContent = "Saving... ";
-                msg. classList.remove("hidden");
+                const btn=document.getElementById("reserveBtn");
+                btn.disabled=true; btn.textContent="Reserving...";
+                const msg=document.getElementById("savedMsg");
+                msg.textContent="Saving..."; msg.classList.remove("hidden");
 
-                try {
-                    var res = await fetch(endpoint(), {
-                        method: "POST",
-                        headers: { "Content-Type": "text/plain" },
+                try{
+                    const res=await fetch(endpoint(), {
+                        method:"POST",
+                        headers:{"Content-Type":"text/plain"},
                         body: JSON.stringify(payload)
                     });
+                    const text=await res.text();
+                    let json=null; try{ json=JSON.parse(text);}catch(_){}
+                    if (!res.ok) throw new Error("HTTP "+res.status+(json&&json.message?": "+json.message:""));
+                    if (json && json.status==="error") throw new Error(json.message||"Server error");
 
-                    var text = await res.text();
-                    console.log("=== RAW SERVER RESPONSE ===", text);
-
-                    var json = null;
-                    try { json = JSON.parse(text); } catch (parseErr) {
-                        console. error("Parse failed:", parseErr, "Raw:", text);
-                    }
-
-                    if (! res.ok) throw new Error("HTTP " + res.status + (json && json.message ? ": " + json. message : ""));
-                    if (json && json.status === "error") throw new Error(json.message || "Server error");
-
-                    msg.textContent = "Booking confirmed!";
-                    msg.classList.remove("hidden");
+                    msg.textContent="Reserved!";
                     msg.classList.add("text-green-600");
-
-                    formBox.innerHTML = '<div class="p-6 rounded-xl bg-green-50 text-green-800 text-center">Booking for <strong>' + nice + '</strong> reserved successfully!</div>';
-
-                    selected = null;
-                    localStorage.removeItem("kiddushBookings");
+                    formBox.innerHTML = `<div class="p-6 rounded-xl bg-green-50 text-green-800 text-center">Reservation for <strong>${nice}</strong> saved. Haftorah: <strong>${haftorah}</strong></div>`;
+                    selected=null;
+                    localStorage.removeItem("haftorahBookings");
                     setTimeout(fetchBookings, 800);
-
-                } catch (err) {
+                }catch(err){
                     console.error("Reservation failed:", err);
-                    msg.textContent = "Error — please try again or contact office. ";
-                    msg.classList.remove("hidden");
+                    msg.textContent="Error — please try again or contact via WhatsApp.";
                     msg.classList.add("text-red-600");
-
-                    btn.disabled = false;
-                    btn.textContent = "Reserve date";
+                    btn.disabled=false; btn.textContent="Reserve date";
                 }
             };
         }
 
-        document.getElementById("prevBtn").onclick = function() {
-            viewDate. setMonth(viewDate.getMonth() - 1);
-            renderCalendar();
+        document.getElementById("prevBtn").onclick=()=>{ viewDate.setMonth(viewDate.getMonth()-1); renderCalendar(); };
+        document.getElementById("nextBtn").onclick=()=>{ viewDate.setMonth(viewDate.getMonth()+1); renderCalendar(); };
+
+        async function init(){
+            await fetchHebcalRange();
+            await fetchBookings();
+            initFaqChat();
+        }
+        init();
+
+        // Lookup UI
+        document.getElementById("lookupBtn").onclick = ()=>{
+            const term=document.getElementById("lookupInput").value;
+            const results=fuzzyMatch(term);
+            const box=document.getElementById("lookupResults");
+            if (!term.trim()){ box.textContent="Please enter a name."; return; }
+            if (!results.length){ box.textContent="No matches found. Try a different spelling."; return; }
+            box.innerHTML = results.map(r=>`<div class="mb-2"><span class="font-semibold">${r.title}</span> — ${new Date(r.date+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</div>`).join("");
         };
 
-        document.getElementById("nextBtn").onclick = function() {
-            viewDate.setMonth(viewDate.getMonth() + 1);
-            renderCalendar();
-        };
-
-        fetchBookings();
-
-        // ===== Simple FAQ "chat" widget with pre-written Q&A and typing dots =====
+        // FAQ chat
         const FAQ_ITEMS = [
-            {
-                q: "How do I book a Kiddush?",
-                a: "Scroll down to the calendar, choose an available date, select your preferred sponsorship package, and complete the booking form."
-            },
-            {
-                q: "What about Bar/Bat Mitzvahs?",
-                a: "By all means book your kiddush but please be aware there is a separate process for booking bar/bat mizvah celebrations through the office."
-            },
-            {
-                q: "Can I cancel or change my booking?",
-                a: "Yes — please contact the office for help with cancellations or changes."
-            },
-            {
-                q: "Who can see the amount I've sponsored?",
-                a: "Only the Shul office can see the amount you have sponsored."
-            },
-            {
-                q: "What if a date says 'Booked'?",
-                a: "That means it's already taken — please select another available Shabbat or Festival date."
-            }
+            { q:"How do I reserve a Haftorah?", a:"Scroll to the calendar, pick an available date, and submit the form." },
+            { q:"Bar/Bat Mitzvahs?", a:"You can reserve here; formal Bar/Bat Mitzvah bookings still go through the office." },
+            { q:"Change my reservation?", a:"Message in the Haftorah WhatsApp group." },
+            { q:"Who sees my details?", a:"Only the organisers." },
+            { q:"A date says 'Reserved'?", a:"It’s taken—please choose another date." }
         ];
-
-        function initFaqChat() {
-            var root = document.getElementById("faqChatRoot");
-            if (!root) return;
-
-            var panel = document.getElementById("faqChatPanel");
-            var toggleBtn = document.getElementById("faqChatToggle");
-            var closeBtn = document.getElementById("faqChatClose");
-            var questionsBox = document.getElementById("faqChatQuestions");
-            var messagesBox = document.getElementById("faqChatMessages");
-
-            questionsBox.innerHTML = "";
-            FAQ_ITEMS.forEach(function(item) {
-                var btn = document.createElement("button");
-                btn.type = "button";
-                btn.className = "px-3 py-1 rounded-full border bg-white hover:bg-indigo-50 text-gray-800";
-                btn.textContent = item.q;
-                btn.onclick = function() {
-                    addFaqMessage(item.q, item.a, messagesBox);
-                };
+        function initFaqChat(){
+            const panel=document.getElementById("faqChatPanel");
+            const toggleBtn=document.getElementById("faqChatToggle");
+            const closeBtn=document.getElementById("faqChatClose");
+            const questionsBox=document.getElementById("faqChatQuestions");
+            const messagesBox=document.getElementById("faqChatMessages");
+            questionsBox.innerHTML="";
+            FAQ_ITEMS.forEach(item=>{
+                const btn=document.createElement("button");
+                btn.type="button";
+                btn.className="px-3 py-1 rounded-full border bg-white hover:bg-indigo-50 text-gray-800";
+                btn.textContent=item.q;
+                btn.onclick=()=>addFaqMessage(item.q,item.a,messagesBox);
                 questionsBox.appendChild(btn);
             });
-
-            toggleBtn.onclick = function() {
-                panel.classList.toggle("hidden");
-            };
-            closeBtn.onclick = function() {
-                panel.classList.add("hidden");
-            };
+            toggleBtn.onclick=()=>panel.classList.toggle("hidden");
+            closeBtn.onclick=()=>panel.classList.add("hidden");
         }
-
-        function addFaqMessage(question, answer, messagesBox) {
-            var userBubble = document.createElement("div");
-            userBubble.className = "flex justify-end mb-1";
-            userBubble.innerHTML =
-                '<div class="inline-block max-w-[80%] rounded-2xl px-3 py-2 bg-indigo-600 text-white text-xs">' +
-                question +
-                "</div>";
+        function addFaqMessage(question,answer,messagesBox){
+            const userBubble=document.createElement("div");
+            userBubble.className="flex justify-end mb-1";
+            userBubble.innerHTML='<div class="inline-block max-w-[80%] rounded-2xl px-3 py-2 bg-indigo-600 text-white text-xs">'+question+"</div>";
             messagesBox.appendChild(userBubble);
-
-            var typingBubble = document.createElement("div");
-            typingBubble.className = "flex justify-start mb-2";
-            typingBubble.innerHTML =
-                '<div class="inline-block max-w-[80%] rounded-2xl px-3 py-2 bg-gray-100 text-gray-500 text-xs">' +
-                    '<span class="typing-dots">' +
-                        '<span class="typing-dot"></span>' +
-                        '<span class="typing-dot"></span>' +
-                        '<span class="typing-dot"></span>' +
-                    '</span>' +
-                "</div>";
-            messagesBox.appendChild(typingBubble);
-
-            messagesBox.scrollTop = messagesBox.scrollHeight;
-
-            setTimeout(function() {
-                if (typingBubble.parentNode === messagesBox) {
-                    messagesBox.removeChild(typingBubble);
-                }
-
-                var botBubble = document.createElement("div");
-                botBubble.className = "flex justify-start mb-2";
-                botBubble.innerHTML =
-                    '<div class="inline-block max-w-[80%] rounded-2xl px-3 py-2 bg-gray-100 text-gray-800 text-xs">' +
-                    answer +
-                    "</div>";
-                messagesBox.appendChild(botBubble);
-                messagesBox.scrollTop = messagesBox.scrollHeight;
-            }, 2000);
+            const typing=document.createElement("div");
+            typing.className="flex justify-start mb-2";
+            typing.innerHTML='<div class="inline-block max-w-[80%] rounded-2xl px-3 py-2 bg-gray-100 text-gray-500 text-xs"><span class="typing-dots"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></span></div>';
+            messagesBox.appendChild(typing);
+            messagesBox.scrollTop=messagesBox.scrollHeight;
+            setTimeout(()=>{
+                if (typing.parentNode===messagesBox) messagesBox.removeChild(typing);
+                const bot=document.createElement("div");
+                bot.className="flex justify-start mb-2";
+                bot.innerHTML='<div class="inline-block max-w-[80%] rounded-2xl px-3 py-2 bg-gray-100 text-gray-800 text-xs">'+answer+"</div>";
+                messagesBox.appendChild(bot);
+                messagesBox.scrollTop=messagesBox.scrollHeight;
+            }, 1200);
         }
-
-        initFaqChat();
     </script>
 </body>
 </html>
