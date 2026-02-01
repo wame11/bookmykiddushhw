@@ -1,4 +1,4 @@
-<! DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -7,8 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: linear-gradient(to bottom,#eef2ff,white); }
-        . card { background: rgba(255,255,255,0.85); backdrop-filter: saturate(1.2) blur(2px); -webkit-backdrop-filter: saturate(1.2) blur(2px); }
-        .chip { font-size: 10px; padding: . 125rem .5rem; border-radius: 9999px; }
+        .card { background: rgba(255,255,255,0.85); backdrop-filter: saturate(1.2) blur(2px); -webkit-backdrop-filter: saturate(1.2) blur(2px); }
+        .chip { font-size: 10px; padding: .125rem .5rem; border-radius: 9999px; }
         #loading { display: none; text-align: center; padding: 1rem; color: #555; }
 
         /* typing dots animation for chat bot */
@@ -86,7 +86,7 @@
 
             <div>
                 <h3 class="font-semibold text-lg text-indigo-700">Can I cancel or change my booking? </h3>
-                <p class="mt-1">Yes — please contact the office at <a href="mailto:office@hwjc.org. uk" class="text-indigo-600 hover:underline">office@hwjc.org. uk</a> for help with cancellations or changes.</p>
+                <p class="mt-1">Yes — please contact the office at <a href="mailto:office@hwjc.org.uk" class="text-indigo-600 hover:underline">office@hwjc.org.uk</a> for help with cancellations or changes.</p>
             </div>
 
             <div>
@@ -136,7 +136,7 @@
         <h2 class="text-2xl md:text-3xl font-bold mb-4">Contact</h2>
         <p class="text-gray-700 text-lg">
             For any questions or assistance, please contact
-            <a href="mailto:office@hwjc.org. uk" class="text-indigo-600 hover:underline font-medium">office@hwjc.org.uk</a>.
+            <a href="mailto:office@hwjc.org.uk" class="text-indigo-600 hover:underline font-medium">office@hwjc.org.uk</a>.
         </p>
     </section>
 
@@ -146,7 +146,6 @@
         </p>
     </section>
 
-    <!-- FAQ Chat Widget -->
     <div id="faqChatRoot" class="fixed bottom-4 right-4 z-50 text-sm">
         <button
             id="faqChatToggle"
@@ -186,7 +185,7 @@
 
     <script>
         const USE_PROXY = false;
-        const PROXY_URL = "https://corsproxy.io/? ";
+        const PROXY_URL = "https://corsproxy.io/?";
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywFQwN2xaU71S6_VKYVqIvdR_IquIVCNTRD1XS5ri_3Fs9LeL0_Ql-TT7FxMZ4DxAo/exec";
 
         const FESTIVALS = new Set([
@@ -217,23 +216,23 @@
         }
         
         function formatISO(y, m, d) { 
-            return y + "-" + String(m).padStart(2,"0") + "-" + String(d). padStart(2,"0"); 
+            return y + "-" + String(m).padStart(2,"0") + "-" + String(d).padStart(2,"0"); 
         }
 
         function normaliseBackendDate(val) {
             if (val === null || val === undefined) return "";
-            var s = String(val). trim();
-            if (! s) return "";
+            var s = String(val).trim();
+            if (!s) return "";
             if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-            if (s.length > 10 && s.charAt(10) === 'T') return s. substring(0, 10);
-            var cleaned = s.charAt(0) === "'" ? s.substring(1). trim() : s;
+            if (s.length > 10 && s.charAt(10) === 'T') return s.substring(0, 10);
+            var cleaned = s.charAt(0) === "'" ? s.substring(1).trim() : s;
             var uk = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
             if (uk) {
                 var day = Number(uk[1]), month = Number(uk[2]), year = Number(uk[3]);
                 if (year && month>=1 && month<=12 && day>=1 && day<=31) return formatISO(year,month,day);
             }
             var d = new Date(cleaned);
-            if (! isNaN(d)) return formatISO(d.getUTCFullYear(), d.getUTCMonth()+1, d. getUTCDate());
+            if (!isNaN(d)) return formatISO(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate());
             return "";
         }
 
@@ -244,7 +243,7 @@
                 if (!res.ok) throw new Error("HTTP " + res.status);
                 var data = await res.json();
                 bookings = Array.isArray(data)
-                    ? data. map(function(b) { return { date: normaliseBackendDate(b.date) }; }). filter(function(b) { return b. date; })
+                    ? data.map(function(b) { return { date: normaliseBackendDate(b.date) }; }).filter(function(b) { return b.date; })
                     : [];
                 localStorage.setItem("kiddushBookings", JSON.stringify(bookings));
             } catch(e) {
@@ -283,7 +282,7 @@
                 var selectable = isSaturdayOrFestival(d) && thisMonth && !taken && !isPast;
 
                 var cell = document.createElement("button");
-                cell. disabled = ! selectable;
+                cell.disabled = !selectable;
                 cell.className = "aspect-square rounded-xl border flex flex-col items-center justify-center gap-1 transition " +
                     (selectable ? "bg-white hover:bg-indigo-50 cursor-pointer" : "bg-gray-50 text-gray-400");
 
@@ -296,7 +295,7 @@
                     chipHtml = '<span class="chip bg-yellow-100 text-yellow-700">Other Month</span>';
                 }
 
-                cell. innerHTML = '<span class="text-base font-semibold ' + (thisMonth ? "text-gray-900" : "text-gray-400") + '">' + cd + '</span>' + chipHtml;
+                cell.innerHTML = '<span class="text-base font-semibold ' + (thisMonth ? "text-gray-900" : "text-gray-400") + '">' + cd + '</span>' + chipHtml;
 
                 if (selectable) {
                     (function(dateObj) {
@@ -309,7 +308,7 @@
                 }
 
                 if (selected && formatISO(selected.getUTCFullYear(), selected.getUTCMonth()+1, selected.getUTCDate()) === iso) {
-                    cell.classList. add("ring-4", "ring-indigo-400", "ring-offset-2");
+                    cell.classList.add("ring-4", "ring-indigo-400", "ring-offset-2");
                 }
 
                 grid.appendChild(cell);
@@ -328,12 +327,12 @@
         }
 
         function isSaturdayOrFestival(d) {
-            return d. getUTCDay() === 6 || FESTIVALS.has(formatISO(d. getUTCFullYear(), d.getUTCMonth()+1, d. getUTCDate()));
+            return d.getUTCDay() === 6 || FESTIVALS.has(formatISO(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()));
         }
 
         function renderForm() {
-            if (! selected) {
-                formBox. innerHTML = '<p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>';
+            if (!selected) {
+                formBox.innerHTML = '<p>Select an available date to sponsor the Kiddush at <strong>Hadley Wood Shul</strong>.</p>';
                 return;
             }
 
@@ -365,7 +364,7 @@
                         '<label class="block text-sm font-medium">Sponsorship Package</label>' +
                         '<select required id="sponsorshipAmount" class="mt-1 w-full rounded-xl border px-3 py-2">' +
                             '<option value="">Select a package</option>' +
-                            '<option value="200. 00">Standard (£200)</option>' +
+                            '<option value="200.00">Standard (£200)</option>' +
                             '<option value="325.00">Premium (£325)</option>' +
                             '<option value="To be discussed with Chantel">Special (Contact Office)</option>' +
                         '</select>' +
@@ -409,10 +408,10 @@
 
                 var payload = {
                     date: iso,
-                    name: fd. get("name"). trim(),
-                    email: fd.get("email").toLowerCase(). trim(),
-                    amount: amount === "To be discussed with Chantel" ?  amount : parseFloat(amount). toFixed(2),
-                    dedication: fd.get("dedication"). trim(),
+                    name: fd.get("name").trim(),
+                    email: fd.get("email").toLowerCase().trim(),
+                    amount: amount === "To be discussed with Chantel" ? amount : parseFloat(amount).toFixed(2),
+                    dedication: fd.get("dedication").trim(),
                     synagogue: "Hadley Wood Shul"
                 };
 
@@ -420,8 +419,8 @@
                 localStorage.setItem("kiddushUserEmail", userEmail);
 
                 var msg = document.getElementById("savedMsg");
-                msg.textContent = "Saving... ";
-                msg. classList.remove("hidden");
+                msg.textContent = "Saving...";
+                msg.classList.remove("hidden");
 
                 try {
                     var res = await fetch(endpoint(), {
@@ -435,10 +434,10 @@
 
                     var json = null;
                     try { json = JSON.parse(text); } catch (parseErr) {
-                        console. error("Parse failed:", parseErr, "Raw:", text);
+                        console.error("Parse failed:", parseErr, "Raw:", text);
                     }
 
-                    if (! res.ok) throw new Error("HTTP " + res.status + (json && json.message ? ": " + json. message : ""));
+                    if (!res.ok) throw new Error("HTTP " + res.status + (json && json.message ? ": " + json.message : ""));
                     if (json && json.status === "error") throw new Error(json.message || "Server error");
 
                     msg.textContent = "Booking confirmed!";
@@ -453,18 +452,19 @@
 
                 } catch (err) {
                     console.error("Reservation failed:", err);
-                    msg.textContent = "Error — please try again or contact office. ";
-                    msg.classList.remove("hidden");
-                    msg.classList.add("text-red-600");
-
-                    btn.disabled = false;
-                    btn.textContent = "Reserve date";
+                    
+                    // === WEBSITE SHUTDOWN LOGIC ON FAILURE ===
+                    document.body.style.background = 'white';
+                    document.body.innerHTML = 
+                        '<div style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; font-family:sans-serif; color:#333;">' +
+                            '<h1 style="font-size:24px; font-weight:normal;">Website is down please try again later</h1>' +
+                        '</div>';
                 }
             };
         }
 
         document.getElementById("prevBtn").onclick = function() {
-            viewDate. setMonth(viewDate.getMonth() - 1);
+            viewDate.setMonth(viewDate.getMonth() - 1);
             renderCalendar();
         };
 
