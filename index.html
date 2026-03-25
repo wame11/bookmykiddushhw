@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -410,7 +411,7 @@
                     date: iso,
                     name: fd.get("name").trim(),
                     email: fd.get("email").toLowerCase().trim(),
-                    amount: amount === "To be discussed with Chantel" ? amount : parseFloat(amount).toFixed(2),
+                    amount: amount === "To be discussed with Chantelle" ? amount : parseFloat(amount).toFixed(2),
                     dedication: fd.get("dedication").trim(),
                     synagogue: "Hadley Wood Shul"
                 };
@@ -435,10 +436,11 @@
                     var json = null;
                     try { json = JSON.parse(text); } catch (parseErr) {
                         console.error("Parse failed:", parseErr, "Raw:", text);
+                        throw new Error("Server returned invalid response. Please try again or contact the office.");
                     }
 
-                    if (!res.ok) throw new Error("HTTP " + res.status + (json && json.message ? ": " + json.message : ""));
-                    if (json && json.status === "error") throw new Error(json.message || "Server error");
+                    if (!res.ok) throw new Error("Server error: " + (json && json.message ? json.message : "HTTP " + res.status));
+                    if (json && json.status === "error") throw new Error(json.message || "Unable to complete booking");
 
                     msg.textContent = "Booking confirmed!";
                     msg.classList.remove("hidden");
@@ -453,12 +455,16 @@
                 } catch (err) {
                     console.error("Reservation failed:", err);
                     
-                    // === WEBSITE SHUTDOWN LOGIC ON FAILURE ===
-                    document.body.style.background = 'white';
-                    document.body.innerHTML = 
-                        '<div style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; font-family:sans-serif; color:#333;">' +
-                            '<h1 style="font-size:24px; font-weight:normal;">Website is down please try again later</h1>' +
-                        '</div>';
+                    // IMPROVED ERROR HANDLING - Show friendly message instead of wiping page
+                    btn.disabled = false;
+                    btn.textContent = "Reserve date";
+                    
+                    msg.textContent = "⚠️ " + err.message;
+                    msg.classList.remove("hidden", "text-green-600");
+                    msg.classList.add("text-red-600", "font-medium");
+                    
+                    // Show alert as backup
+                    alert("Booking failed: " + err.message + "\n\nPlease try again or contact the office at office@hwjc.org.uk");
                 }
             };
         }
