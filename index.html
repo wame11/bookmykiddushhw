@@ -5,24 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Book my Kiddush</title>
 <meta name="robots" content="noindex">
+<link rel="canonical" href="https://bookmykiddush.uk/">
+<meta name="theme-color" content="#46702b">
 <script>
   // bookmykiddush.co.uk and bookmykiddush.com land here (GoDaddy forwards them).
-  // People who clicked a link on a Hadley Wood website go straight to the Hadley Wood booking page;
-  // everyone else goes to the Book my Kiddush front page at bookmykiddush.uk.
+  // People who clicked a link on a Hadley Wood website go straight to the Hadley Wood booking page.
+  // Everyone else sees the choice page below at once (it is a copy of https://bookmykiddush.uk/),
+  // and is then moved to https://bookmykiddush.uk/ in the background.
   (function () {
     var host = "";
     try { host = new URL(document.referrer).hostname.toLowerCase(); } catch (e) {}
-    var fromHadleyWood = /(^|\.)hwjc\.(uk|org\.uk)$/.test(host);
-    window.location.replace(fromHadleyWood ? "https://hwjc.uk/book-my-kiddush" : "https://bookmykiddush.uk/");
+    if (/(^|\.)hwjc\.(uk|org\.uk)$/.test(host)) {
+      window.fromHadleyWood = true;
+      window.location.replace("https://hwjc.uk/book-my-kiddush");
+    }
   })();
 </script>
-<noscript><meta http-equiv="refresh" content="0; url=https://bookmykiddush.uk/"></noscript>
+<link rel="preconnect" href="https://bookmykiddush.uk">
+<link rel="preconnect" href="https://hwjc.uk">
+<!-- This is a copy of the choice page in wame11/hwjc (.build/bookmykiddush-site/index.html). Keep the two in step.
+     It has no outside files apart from tree.png, so it appears straight away on a slow connection. -->
 <style>
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #26292b; background: #f6f4ef; }
-  p { text-align: center; padding: 1rem; font-size: 1.2rem; }
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:Manrope,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#26292b;background:#f6f4ef;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
+h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+h2{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weight:600;line-height:1.15;font-size:clamp(1.8rem,5vw,2.6rem);max-width:16ch}
+.halves{flex:1;display:flex;flex-direction:column}
+@media(min-width:860px){.halves{flex-direction:row}}
+.half{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding:40px 24px;color:inherit;text-decoration:none;transition:filter .15s}
+.half:hover{filter:brightness(1.05)}
+.half:focus-visible{outline:4px solid #1f5fbf;outline-offset:-8px}
+.go{display:inline-flex;align-items:center;gap:12px;font-size:1.4rem;font-weight:800;border-radius:999px;padding:20px 38px}
+.hw{background:#46702b;color:#fff}
+.hw img{width:88px;height:88px;background:#fff;border-radius:50%;padding:12px;object-fit:contain}
+.hw .go{background:#fff;color:#2f4d1c}
+.bmk{background:#f6f4ef;color:#26292b}
+.icon{width:88px;height:88px;border-radius:50%;background:#fff;border:3px solid #d7d2c6;display:grid;place-items:center;color:#46702b}
+.icon svg{width:44px;height:44px}
+.bmk .go{background:#26292b;color:#fff}
 </style>
 </head>
 <body>
-  <p>Opening Book my Kiddush&hellip; <a href="https://bookmykiddush.uk/">Continue</a></p>
+<h1>Book my Kiddush</h1>
+<main class="halves">
+<a class="half hw" href="https://hwjc.uk/book-my-kiddush"><img src="tree.png" alt="" width="88" height="88"><h2>Are you a member of Hadley Wood Shul?</h2><span class="go">Click here &rarr;</span></a>
+<a class="half bmk" href="https://bookmykiddush.uk/for-shuls"><span class="icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16c0 7-2 12-8 12S8 11 8 4zM16 16v8M10 28h12M12 24h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h2>Interested in Book my Kiddush for your shul?</h2><span class="go">Find out more &rarr;</span></a>
+</main>
+<script>
+  // Show the page first, then move to the real address. The buttons above already work while that happens.
+  (function () {
+    if (window.fromHadleyWood) return;
+    var moved = false;
+    function move() { if (moved) return; moved = true; window.location.replace("https://bookmykiddush.uk/"); }
+    if (window.requestAnimationFrame) requestAnimationFrame(function () { setTimeout(move, 0); });
+    setTimeout(move, 1500);
+  })();
+</script>
 </body>
 </html>
