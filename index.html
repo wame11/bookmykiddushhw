@@ -47,14 +47,40 @@ h2{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weight:600;line-hei
 .half:hover{filter:brightness(1.05)}
 .half:focus-visible{outline:4px solid #1f5fbf;outline-offset:-8px}
 .go{display:inline-flex;align-items:center;gap:12px;font-size:1.4rem;font-weight:800;border-radius:999px;padding:20px 38px}
-.hw{background:#46702b;color:#fff}
-.hw img{width:88px;height:88px;background:#fff;border-radius:50%;padding:12px;object-fit:contain}
-.hw .go{background:#fff;color:#2f4d1c}
+/* Green half: choose your shul */
+.pick{background:#46702b;color:#fff;justify-content:flex-start;padding-top:max(40px,8vh);gap:14px}
+.pick:hover{filter:none}
+@media(min-width:860px){.pick{justify-content:center;padding-top:40px}}
+.pick .icon{border-color:#fff}
+.pick p.sub{font-size:1.15rem;font-weight:600;opacity:.92;margin-top:-6px}
+.chooser{position:relative;width:100%;max-width:440px;margin-top:10px;text-align:left}
+.field{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;font:inherit;font-size:1.3rem;font-weight:800;color:#26292b;background:#fff;border:0;border-radius:18px;padding:19px 20px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.field svg{width:26px;height:26px;flex:none;transition:transform .15s}
+.field[aria-expanded="true"] svg{transform:rotate(180deg)}
+.field:focus-visible,.opt:focus-visible,.search input:focus-visible{outline:4px solid #ffd54a;outline-offset:2px}
+.panel{position:absolute;z-index:5;left:0;right:0;top:calc(100% + 10px);background:#fff;color:#26292b;border-radius:18px;box-shadow:0 16px 40px rgba(0,0,0,.3);overflow:hidden}
+.search{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #ecebe6;color:#6f7579}
+.search svg{width:22px;height:22px;flex:none}
+.search input{flex:1;min-width:0;font:inherit;font-size:1.1rem;font-weight:600;color:#26292b;border:0;background:none;padding:6px 0;-webkit-appearance:none;appearance:none}
+.search input::placeholder{color:#8b9094}
+.opts{list-style:none;padding:0;max-height:min(46vh,340px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.opts li+li{border-top:1px solid #ecebe6}
+.opt{display:flex;align-items:center;gap:14px;padding:14px 16px;font-size:1.2rem;font-weight:800;color:#26292b;text-decoration:none}
+.opt:hover{background:#f3f6ee}
+.opt .pic{width:44px;height:44px;border-radius:12px;flex:none;display:grid;place-items:center;color:#fff;background:#46702b;overflow:hidden}
+.opt .pic--logo{background:#fff;border:1px solid #e0dcd3}
+.opt .pic img{width:34px;height:34px;object-fit:contain}
+.opt .pic svg{width:24px;height:24px}
+.opt .chev{width:22px;height:22px;margin-left:auto;flex:none;color:#b9b6ad}
+.none{padding:16px;color:#4f5559;font-weight:600}
+.nojs{display:inline-flex;margin-top:14px;background:#fff;color:#2f4d1c;font-size:1.2rem;font-weight:800;border-radius:999px;padding:16px 28px;text-decoration:none}
+[hidden]{display:none !important}
 .bmk{background:#f6f4ef;color:#26292b}
 .icon{width:88px;height:88px;border-radius:50%;background:#fff;border:3px solid #d7d2c6;display:grid;place-items:center;color:#46702b}
 .icon svg{width:44px;height:44px}
 .bmk .go{background:#26292b;color:#fff}
-/* The blue "As seen in the Jewish Chronicle" badge, the same as on https://bookmykiddush.uk/ (switched on 22 Nov 2026). */
+/* The blue "As seen in the Jewish Chronicle" badge. It is added only once the article is out (see .build/drafts/jc-published).
+   It sits at the top of the cream half without taking up room, so the buttons stay where they are on small phones. */
 .bmk{position:relative}
 .jc-badge{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;background:#1d4f91;color:#fff;font-weight:800;font-size:.82rem;line-height:1.2;border-radius:999px;padding:5px 13px}
 .jc-badge svg{width:14px;height:14px;flex:none}
@@ -64,11 +90,73 @@ h2{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weight:600;line-hei
 <body>
 <h1>Book my Kiddush</h1>
 <main class="halves">
-<a class="half hw" href="https://hwjc.uk/book-my-kiddush"><img src="tree.png" alt="" width="88" height="88"><h2>Are you a member of Hadley Wood Shul?</h2><span class="go">Click here &rarr;</span></a>
+<section class="half pick" aria-labelledby="pickTitle">
+<span class="icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16c0 7-2 12-8 12S8 11 8 4zM16 16v8M10 28h12M12 24h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+<h2 id="pickTitle">Book a Kiddush</h2>
+<p class="sub">Choose your shul to begin</p>
+<div class="chooser" id="chooser">
+<button class="field" id="pickBtn" type="button" aria-expanded="false" aria-controls="pickPanel"><span>Choose your shul</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+<div class="panel" id="pickPanel" hidden>
+<label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><input id="pickSearch" type="search" placeholder="Search for your shul" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search for your shul"></label>
+<ul class="opts" id="pickList">
+<li data-words="hadley wood shul jewish community synagogue hwjc"><a class="opt" href="https://hwjc.uk/book-my-kiddush"><span class="pic pic--logo"><img src="tree.png" alt="" width="34" height="34"></span><span>Hadley Wood Shul</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+</ul>
+<p class="none" id="pickNone" role="status" hidden>No shul with that name yet. Please check the spelling, or ask your shul office.</p>
+</div>
+</div>
+<noscript><a class="nojs" href="https://hwjc.uk/book-my-kiddush">Hadley Wood Shul &rarr;</a></noscript>
+</section>
 <a class="half bmk" href="https://bookmykiddush.uk/for-shuls"><span class="jc-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>As seen in the Jewish Chronicle</span><span class="icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16c0 7-2 12-8 12S8 11 8 4zM16 16v8M10 28h12M12 24h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h2>Interested in Book my Kiddush for your shul?</h2><span class="go">Find out more &rarr;</span></a>
 </main>
 <script>
-  // Show the page first, then move to the real address. The buttons above already work while that happens.
+// The "Choose your shul" menu. Hadley Wood is already in the page; the other shuls are added from the booking system.
+(function () {
+  var chooser = document.getElementById("chooser"), btn = document.getElementById("pickBtn"), panel = document.getElementById("pickPanel");
+  var list = document.getElementById("pickList"), search = document.getElementById("pickSearch"), none = document.getElementById("pickNone");
+  if (!chooser || !btn || !panel) return;
+  function plain(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/^ | $/g, ""); }
+  function filter() {
+    var q = plain(search.value), shown = 0;
+    Array.prototype.forEach.call(list.children, function (li) {
+      var show = !q || (" " + li.getAttribute("data-words")).indexOf(" " + q) !== -1;
+      li.hidden = !show;
+      if (show) shown++;
+    });
+    none.hidden = shown > 0;
+  }
+  function open(yes) {
+    panel.hidden = !yes;
+    btn.setAttribute("aria-expanded", String(yes));
+    if (!yes) { search.value = ""; filter(); }
+  }
+  btn.onclick = function () { open(panel.hidden); };
+  search.oninput = filter;
+  search.onkeydown = function (e) {
+    if (e.key !== "Enter") return;
+    var first = list.querySelector("li:not([hidden]) a");
+    if (first) location.href = first.href;
+  };
+  document.addEventListener("click", function (e) { if (!panel.hidden && !chooser.contains(e.target)) open(false); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !panel.hidden) { open(false); btn.focus(); } });
+
+  var CUP = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16c0 7-2 12-8 12S8 11 8 4zM16 16v8M10 28h12M12 24h8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var CHEV = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function add(s) {
+    if (!s || !s.name || !/^https:\/\/[a-z0-9-]+\.bookmykiddush\.uk\/$/.test(s.url)) return;      // only real booking pages
+    var li = document.createElement("li"), a = document.createElement("a"), pic = document.createElement("span"), name = document.createElement("span");
+    li.setAttribute("data-words", plain(s.name));
+    a.className = "opt"; a.href = s.url;
+    if (s.logo && s.logo.indexOf(s.url) === 0) { pic.className = "pic pic--logo"; var img = new Image(); img.alt = ""; img.src = s.logo; pic.appendChild(img); }
+    else { pic.className = "pic"; if (/^#[0-9a-f]{6}$/i.test(s.colour || "")) pic.style.background = s.colour; pic.innerHTML = CUP; }
+    name.textContent = s.name;
+    a.appendChild(pic); a.appendChild(name); a.insertAdjacentHTML("beforeend", CHEV);
+    li.appendChild(a); list.appendChild(li);
+  }
+  if (window.fetch) fetch("https://api.bookmykiddush.uk/shuls").then(function (r) { return r.json(); }).then(function (j) { (j.shuls || []).forEach(add); filter(); }).catch(function () {});
+})();
+</script>
+<script>
+  // Show the page first, then move to the real address. The menu and button above already work while that happens.
   (function () {
     if (window.fromHadleyWood) return;
     var moved = false;
