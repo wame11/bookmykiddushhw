@@ -5,23 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Book my Kiddush</title>
 <meta name="robots" content="noindex">
-<link rel="canonical" href="https://bookmykiddush.uk/">
+<link rel="canonical" href="https://bookmykiddush.co.uk/">
 <meta name="description" content="Sponsor a Kiddush at your shul in a few taps. Run a shul? Give your members a simple online booking calendar.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Book my Kiddush">
 <meta property="og:title" content="Book my Kiddush">
 <meta property="og:description" content="Sponsor a Kiddush at your shul in a few taps. Run a shul? Give your members a simple online booking calendar.">
-<meta property="og:url" content="https://bookmykiddush.uk/">
-<meta property="og:image" content="https://bookmykiddush.uk/img/share.png">
+<meta property="og:url" content="https://bookmykiddush.co.uk/">
+<meta property="og:image" content="https://bookmykiddush.co.uk/img/share.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#46702b">
 <script>
-  // bookmykiddush.co.uk and bookmykiddush.com land here (GoDaddy forwards them).
+  // bookmykiddush.com lands here (GoDaddy forwards it). bookmykiddush.co.uk used to as well; since 22 Nov 2026
+  // it is the real home page and no longer passes through here.
   // People who clicked a link on a Hadley Wood website go straight to the Hadley Wood booking page.
-  // Everyone else sees the choice page below at once (it is a copy of https://bookmykiddush.uk/),
-  // and is then moved to https://bookmykiddush.uk/ in the background.
+  // Everyone else sees the choice page below at once (it is a copy of https://bookmykiddush.co.uk/),
+  // and is then moved to https://bookmykiddush.co.uk/ in the background.
   (function () {
     var host = "";
     try { host = new URL(document.referrer).hostname.toLowerCase(); } catch (e) {}
@@ -31,7 +32,7 @@
     }
   })();
 </script>
-<link rel="preconnect" href="https://bookmykiddush.uk">
+<link rel="preconnect" href="https://bookmykiddush.co.uk">
 <link rel="preconnect" href="https://hwjc.uk">
 <!-- This is a copy of the choice page in wame11/hwjc (.build/bookmykiddush-site/index.html). Keep the two in step.
      It has no outside files apart from tree.png, so it appears straight away on a slow connection. -->
@@ -106,7 +107,7 @@ h2{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weight:600;line-hei
 </div>
 <noscript><a class="nojs" href="https://hwjc.uk/book-my-kiddush">Hadley Wood Shul &rarr;</a></noscript>
 </section>
-<a class="half bmk" href="https://bookmykiddush.uk/for-shuls"><span class="jc-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>As seen in the Jewish Chronicle</span><span class="icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16c0 7-2 12-8 12S8 11 8 4zM16 16v8M10 28h12M12 24h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h2>Interested in Book my Kiddush for your shul?</h2><span class="go">Find out more &rarr;</span></a>
+<a class="half bmk" href="https://bookmykiddush.co.uk/for-shuls"><span class="jc-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>As seen in the Jewish Chronicle</span><span class="icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16c0 7-2 12-8 12S8 11 8 4zM16 16v8M10 28h12M12 24h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h2>Interested in Book my Kiddush for your shul?</h2><span class="go">Find out more &rarr;</span></a>
 </main>
 <script>
 // The "Choose your shul" menu. Hadley Wood is already in the page; the other shuls are added from the booking system.
@@ -142,7 +143,7 @@ h2{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weight:600;line-hei
   var CUP = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16c0 7-2 12-8 12S8 11 8 4zM16 16v8M10 28h12M12 24h8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   var CHEV = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function add(s) {
-    if (!s || !s.name || !/^https:\/\/[a-z0-9-]+\.bookmykiddush\.uk\/$/.test(s.url)) return;      // only real booking pages
+    if (!s || !s.name || !/^https:\/\/[a-z0-9-]+\.bookmykiddush\.(co\.)?uk\/$/.test(s.url)) return;      // only real booking pages
     var li = document.createElement("li"), a = document.createElement("a"), pic = document.createElement("span"), name = document.createElement("span");
     li.setAttribute("data-words", plain(s.name));
     a.className = "opt"; a.href = s.url;
@@ -160,11 +161,11 @@ h2{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weight:600;line-hei
   (function () {
     if (window.fromHadleyWood) return;
     var moved = false;
-    // "#via=old&ref=..." tells bookmykiddush.uk's visitor counter that this visit came through the old
+    // "#via=old&ref=..." tells bookmykiddush.co.uk's visitor counter that this visit came through the old
     // domains, and which website linked to them (for example a newspaper article). It is removed on arrival.
     var from = "";
     try { from = document.referrer ? new URL(document.referrer).hostname.toLowerCase().replace(/[^a-z0-9.-]/g, "") : ""; } catch (e) {}
-    function move() { if (moved) return; moved = true; window.location.replace("https://bookmykiddush.uk/#via=old" + (from ? "&ref=" + from : "")); }
+    function move() { if (moved) return; moved = true; window.location.replace("https://bookmykiddush.co.uk/#via=old" + (from ? "&ref=" + from : "")); }
     if (window.requestAnimationFrame) requestAnimationFrame(function () { setTimeout(move, 0); });
     setTimeout(move, 1500);
   })();
