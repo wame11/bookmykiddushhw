@@ -80,13 +80,23 @@ h2{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weight:600;line-hei
 .icon{width:88px;height:88px;border-radius:50%;background:#fff;border:3px solid #d7d2c6;display:grid;place-items:center;color:#46702b}
 .icon svg{width:44px;height:44px}
 .bmk .go{background:#26292b;color:#fff}
-/* The blue "As seen in the Jewish Chronicle" badge. It is added only once the article is out (see .build/drafts/jc-published).
-   It sits at the top of the cream half without taking up room, so the buttons stay where they are on small phones. */
+/* The cream half: the whole half opens /for-shuls (the "Find out more" link is stretched over it), and the
+   JC sticker sits in its top corner as its own link, above that. */
 .bmk{position:relative}
-.jc-badge{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;background:#1d4f91;color:#fff;font-weight:800;font-size:.82rem;line-height:1.2;border-radius:999px;padding:5px 13px}
-.jc-badge svg{width:14px;height:14px;flex:none}
-@media(min-width:860px){.jc-badge{top:28px;font-size:1rem;padding:8px 18px;gap:8px}.jc-badge svg{width:18px;height:18px}}
-</style>
+.bmk .go::after{content:"";position:absolute;inset:0}
+.bmk .go:focus-visible{outline:4px solid #1f5fbf;outline-offset:4px}
+.bmk .jc-star{position:absolute;top:12px;right:12px}
+@media(max-width:340px){.bmk .jc-star{--d:96px;top:8px;right:6px}}
+@media(min-width:860px){.bmk .jc-star{--d:150px;top:30px;right:34px}}
+/* "As seen in the JC": a starburst sticker that opens the Jewish Chronicle article (published 26 Nov 2026).
+   Shared by the home page and the sales page (keep the two copies the same). */
+.jc-star{--d:112px;position:relative;z-index:3;display:grid;place-content:center;justify-items:center;width:var(--d);height:var(--d);padding:0;text-align:center;white-space:nowrap;color:#1b2f5e;text-decoration:none;line-height:1.05;font-size:calc(var(--d) / 9);transform:rotate(-12deg);filter:drop-shadow(0 6px 10px rgba(38,41,43,.28));background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,1 56,7.9 63.8,3 67.7,11.3 76.5,8.8 77.8,17.9 87,17.9 85.8,27 94.6,29.6 90.8,38 98.5,43 92.5,50 98.5,57 90.8,62 94.6,70.4 85.8,73 87,82.1 77.8,82.1 76.5,91.2 67.7,88.7 63.8,97 56,92.1 50,99 44,92.1 36.2,97 32.3,88.7 23.5,91.2 22.2,82.1 13,82.1 14.2,73 5.4,70.4 9.2,62 1.5,57 7.5,50 1.5,43 9.2,38 5.4,29.6 14.2,27 13,17.9 22.2,17.9 23.5,8.8 32.3,11.3 36.2,3 44,7.9' fill='%23ffcf33' stroke='%23fff' stroke-width='2.4' stroke-linejoin='round'/%3E%3Ccircle cx='50' cy='50' r='35' fill='none' stroke='%231b2f5e' stroke-opacity='.22' stroke-width='1.2' stroke-dasharray='3 2.4'/%3E%3C/svg%3E") center/100% 100% no-repeat;transition:transform .18s}
+.jc-star:hover{transform:rotate(-6deg) scale(1.06)}
+.jc-star:focus-visible{outline:4px solid #1f5fbf;outline-offset:4px;border-radius:50%}
+.jc-star .s1{font-weight:800;letter-spacing:.07em;text-transform:uppercase;font-size:.78em}
+.jc-star .s2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:2em;line-height:1;margin:.02em 0 .1em}
+.jc-star .s3{font-weight:800;font-size:.78em;text-decoration:underline;text-underline-offset:2px}
+@media (prefers-reduced-motion:reduce){.jc-star{transition:none}}</style>
 </head>
 <body>
 <h1>Book my Kiddush</h1>
@@ -107,7 +117,7 @@ h2{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weight:600;line-hei
 </div>
 <noscript><a class="nojs" href="https://hwjc.uk/book-my-kiddush">Hadley Wood Shul &rarr;</a></noscript>
 </section>
-<a class="half bmk" href="https://bookmykiddush.co.uk/for-shuls"><span class="jc-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>As seen in the Jewish Chronicle</span><span class="icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16c0 7-2 12-8 12S8 11 8 4zM16 16v8M10 28h12M12 24h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h2>Interested in Book my Kiddush for your shul?</h2><span class="go">Find out more &rarr;</span></a>
+<div class="half bmk"><a class="jc-star" href="https://www.thejc.com/community/young-web-designer-takes-the-stress-out-of-kiddush-bookings-opybc14u" target="_blank" rel="noopener" aria-label="As seen in the Jewish Chronicle: read the article (opens the JC website)"><span class="s1">As seen in</span><span class="s2">the JC</span><span class="s3">Read it &rarr;</span></a><span class="icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16c0 7-2 12-8 12S8 11 8 4zM16 16v8M10 28h12M12 24h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h2>Interested in Book my Kiddush for your shul?</h2><a class="go" href="https://bookmykiddush.co.uk/for-shuls">Find out more &rarr;</a></div>
 </main>
 <script>
 // The "Choose your shul" menu. Hadley Wood is already in the page; the other shuls are added from the booking system.
